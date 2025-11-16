@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom"
 import Login from "./pages/auth/Login.jsx"
 import React from "react"
-import SignUp from "./pages/auth/SignUp.js"
+import SignUp from "./pages/auth/SignUp.jsx"
 import PrivateRoute from "./routes/privateRoute.js"
 import CreateTasks from "./pages/admin/createTasks.js"
 import ManageTasks from "./pages/admin/manageTasks.js"
