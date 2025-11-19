@@ -3,21 +3,25 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
-const HomePage: React.FC = () => {
+const HomePage= () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hover, setHover] = useState(false);
-
+  
   const handleCTA = useCallback(() => {
     if (isLoggedIn) navigate("/user");
     else navigate("/login");
   }, [isLoggedIn, navigate]);
-
+  
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    setIsLoggedIn(Boolean(user));
+  }, []);
   // press Enter anywhere (unless typing) to open login/dashboard
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
+    const onKey = (e) => {
       if (e.key !== "Enter") return;
-      const el = document.activeElement as HTMLElement | null;
+      const el = document.activeElement;
       if (!el) return;
       const tag = el.tagName;
       const editable = el.getAttribute("contenteditable");
@@ -29,10 +33,6 @@ const HomePage: React.FC = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [handleCTA]);
 
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-    setIsLoggedIn(Boolean(user));
-  }, []);
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-green-50 via-green-100 to-slate-200 dark:from-slate-900 dark:via-green-900 dark:to-slate-900 p-6 relative">

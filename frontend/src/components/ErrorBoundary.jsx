@@ -1,18 +1,16 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-type State = { hasError: boolean; error?: Error | null; info?: string | null };
+export default class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null, info: null };
 
-export default class ErrorBoundary extends React.Component<{ children: React.ReactNode }, State> {
-  state: State = { hasError: false, error: null, info: null };
-
-  static getDerivedStateFromError(error: Error) {
+  static getDerivedStateFromError(error) {
     return { hasError: true, error, info: null };
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
+  componentDidCatch(_error, info) {
     // send to logging service if you have one
-    // console.error(error, info);
+    // console.error(_error, info);
     this.setState({ info: info.componentStack });
   }
 

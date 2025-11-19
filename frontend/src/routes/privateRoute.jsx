@@ -1,7 +1,7 @@
-// import React from 'react'
+import React from 'react'
 import { Outlet } from "react-router-dom"
 
-const PrivateRoute = ({ allowedRoles }: { allowedRoles?: string[] }) => {
+const PrivateRoute = ({ allowedRoles }) => {
   void allowedRoles;
   return (
     <Outlet />

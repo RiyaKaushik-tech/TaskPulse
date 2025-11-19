@@ -141,3 +141,14 @@ export const uploadImage = async (req, res, next) => {
     return next(ErrorHandler(500, "Internal server error"));
   }
 }
+
+export const signout = async (req, res, next) => {
+  try {
+    res
+      .clearCookie("access_token")
+      .status(200)
+      .json("User has been logged-out successfully!")
+  } catch (error) {
+    next(error)
+  }
+}

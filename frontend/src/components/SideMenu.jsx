@@ -17,20 +17,20 @@ const SideMenu = ({ activeMenu }) => {
     console.log(route)
 
     if (route === "logout") {
-      handleLogut()
+      handleLogout()
       return
     }
 
     navigate(route)
   }
 
-  const handleLogut = async () => {
+  const handleLogout = async () => {
     try {
       const response = await axiosInstance.post("/auth/sign-out")
 
       if (response.data) {
         dispatch(signOutSuccess())
-
+        console.log("logout : ",response.data)
         navigate("/login")
       }
     } catch (error) {
