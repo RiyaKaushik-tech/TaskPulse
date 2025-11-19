@@ -10,6 +10,11 @@ import taskRouter from "./routes/task.router.js";
 import userRouter from "./routes/user.Router.js";
 import reportRouter  from "./routes/reportRouter.js"
 
+import { fileURLToPath } from 'url';
+
+const __filename__= fileURLToPath(import.meta.url);
+const __dirname__ = path.dirname(__filename)
+
 const rawPort = process.env.PORT;
 const parsedPort = Number(rawPort);
 const PORT = Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 5000;
@@ -50,6 +55,7 @@ try {
   app.use("/api/users",userRouter);
   app.use("/api/tasks",taskRouter);
   app.use("/api/report",reportRouter);
+  app.use("/uploads",express.static(path.join(__dirname, "uploads")))
 
   // optional legacy compatibility if you previously used /sign-Up
   app.post('/sign-Up', (req, res) => res.redirect(307, '/api/auth/signUp'));
