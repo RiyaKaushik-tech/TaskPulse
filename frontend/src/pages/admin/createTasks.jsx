@@ -5,10 +5,10 @@ import { MdDelete } from "react-icons/md"
 import DatePicker from "react-datepicker"
 
 import "react-datepicker/dist/react-datepicker.css"
-import SelectedUsers from "../../components/SelectedUsers"
+import SelectedUsers from "../../components/SelectedUser.jsx"
 import TodoListInput from "../../components/TodoListInput"
-import AddAttachmentsInput from "../../components/AddAttachmentsInput"
-import axiosInstance from "../../utils/axioInstance"
+import AddAttachmentsInput from "../../components/AddAttachment.jsx"
+import axiosInstance from "../../utils/axiosInstance.js"
 import moment from "moment"
 import toast from "react-hot-toast"
 import Modal from "../../components/Modal"
@@ -23,7 +23,7 @@ const CreateTask = () => {
   const [taskData, setTaskData] = useState({
     title: "",
     description: "",
-    priority: "Low",
+    priority: "low",
     dueDate: null,
     assignedTo: [],
     todoChecklist: [],
@@ -49,7 +49,7 @@ const CreateTask = () => {
     setTaskData({
       title: "",
       description: "",
-      priority: "Low",
+      priority: "low",
       dueDate: null,
       assignedTo: [],
       todoChecklist: [],
@@ -65,7 +65,7 @@ const CreateTask = () => {
         completed: false,
       }))
 
-      const response = await axiosInstance.post("/tasks/create", {
+      const response = await axiosInstance.post("/tasks/create-task", {
         ...taskData,
         dueDate: new Date(taskData.dueDate).toISOString(),
         todoChecklist: todolist,
@@ -113,6 +113,7 @@ const CreateTask = () => {
   const handleSubmit = async (e) => {
     setError("")
 
+    alert("task created")
     if (!taskData.title.trim()) {
       setError("Title is required!")
       return
@@ -268,7 +269,7 @@ const CreateTask = () => {
                       handleValueChange("priority", e.target.value)
                     }
                   >
-                    <option value="Low">Low</option>
+                    <option value="low">low</option>
                     <option value="Medium">Medium</option>
                     <option value="High">High</option>
                   </select>

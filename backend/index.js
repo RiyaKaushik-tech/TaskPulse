@@ -13,7 +13,7 @@ import reportRouter  from "./routes/reportRouter.js"
 import { fileURLToPath } from 'url';
 
 const __filename__= fileURLToPath(import.meta.url);
-const __dirname__ = path.dirname(__filename)
+const __dirname__ = path.dirname(__filename__)
 
 const rawPort = process.env.PORT;
 const parsedPort = Number(rawPort);
@@ -55,7 +55,7 @@ try {
   app.use("/api/users",userRouter);
   app.use("/api/tasks",taskRouter);
   app.use("/api/report",reportRouter);
-  app.use("/uploads",express.static(path.join(__dirname, "uploads")))
+  app.use("/uploads",express.static(path.join(__dirname__, "uploads")))
 
   // optional legacy compatibility if you previously used /sign-Up
   app.post('/sign-Up', (req, res) => res.redirect(307, '/api/auth/signUp'));

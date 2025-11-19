@@ -19,19 +19,19 @@ export const SIDE_MENU_DATA = [
     id: 2,
     label: "Manage Task",
     icon: MdManageHistory,
-    path: "/admin/tasks",
+    path: "/admin/manageTasks",
   },
   {
     id: 3,
     label: "Create Task",
     icon: MdAddTask,
-    path: "/admin/create-task",
+    path: "/admin/createTasks",
   },
   {
     id: 4,
     label: "Team Members",
     icon: MdPeopleAlt,
-    path: "/admin/users",
+    path: "/admin/manageUsers",
   },
   {
     id: 5,
@@ -46,13 +46,13 @@ export const USER_SIDE_MENU_DATA = [
     id: 1,
     label: "Dashboard",
     icon: MdDashboardCustomize,
-    path: "/user/dashboard",
+    path: "/users/userDashboard",
   },
   {
     id: 2,
     label: "My Tasks",
     icon: MdOutlineTaskAlt,
-    path: "/user/tasks",
+    path: "/users/myTasks",
   },
   {
     id: 3,

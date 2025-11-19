@@ -33,7 +33,7 @@ const Dashboard = () => {
     setPieChartData(taskDistributionData)
 
     const priorityLevelData = [
-      { priority: "Low", count: taskPriorityLevels?.Low || 0 },
+      { priority: "low", count: taskPriorityLevels?.low || 0 },
       { priority: "Medium", count: taskPriorityLevels?.Medium || 0 },
       { priority: "High", count: taskPriorityLevels?.High || 0 },
     ]
@@ -78,7 +78,7 @@ const Dashboard = () => {
             <div className="mt-4 md:mt-0">
               <button
                 className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-2 rounded-lg font-medium transition-all duration-200 shadow-md"
-                onClick={() => navigate("/admin/create-task")}
+                onClick={() => navigate("/admin/createTasks")}
               >
                 Create New Task
               </button>

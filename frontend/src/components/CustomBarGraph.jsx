@@ -16,7 +16,7 @@ const CustomBarChart = ({ data }) => {
   // Fuction to alternate colors
   const getBarColor = (entry) => {
     switch (entry?.priority) {
-      case "Low":
+      case "low":
         return "#4CAF50"
 
       case "Medium":

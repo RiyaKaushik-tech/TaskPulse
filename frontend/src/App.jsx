@@ -4,7 +4,7 @@ import React from "react"
 import SignUp from "./pages/auth/SignUp.jsx"
 import PrivateRoute from "./routes/privateRoute.jsx"
 import CreateTasks from "./pages/admin/createTasks.jsx"
-import ManageTasks from "./pages/admin/manageTaskst.jsx"
+import ManageTasks from "./pages/admin/manageTasks.jsx"
 import ManageUsers from "./pages/admin/manageUsers.jsx"
 import MyTasks from "./pages/users/myTasks.jsx"
 import TaskDeatils from "./pages/users/taskDeatils.jsx"
@@ -28,7 +28,7 @@ function App() {
       {/* admin routes */}
       <Route element={<PrivateRoute allowedRoles={["admin"]}/>}>
         <Route path="/admin/dashboard" element={<Dashboard/>} />
-        <Route path="/admin/createTask" element={<CreateTasks/>} />
+        <Route path="/admin/createTasks" element={<CreateTasks/>} />
         <Route path="/admin/manageUsers" element={<ManageUsers/>} />
         <Route path="/admin/manageTasks" element={<ManageTasks/>} />
       </Route>
