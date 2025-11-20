@@ -185,9 +185,9 @@ const CreateTask = () => {
 
       toast.success("Task deleted successfully!")
 
-      navigate("/admin/tasks")
+      navigate("/admin/manageTasks")
     } catch (error) {
-      console.log("Error delating task: ", error)
+      console.log("Error deleting task: ", error)
     }
   }
 
