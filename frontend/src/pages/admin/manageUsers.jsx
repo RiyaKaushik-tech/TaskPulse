@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import axiosInstance from "../../utils/axioInstance"
+import axiosInstance from "../../utils/axiosInstance"
 import DashboardLayout from "../../components/DashboardLayout"
 import { FaFileAlt } from "react-icons/fa"
 import UserCard from "../../components/UserCard"
