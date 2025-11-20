@@ -22,7 +22,7 @@ const ManageUsers = () => {
 
   const handleDownloadReport = async () => {
     try {
-      const response = await axiosInstance.get("/reports/export/user", {
+      const response = await axiosInstance.get("/report/export/user", {
         responseType: "blob",
       })
 

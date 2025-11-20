@@ -50,7 +50,7 @@ const ManageTasks = () => {
 
   const handleDownloadReport = async () => {
     try {
-      const response = await axiosInstance.get("/reports/export/tasks", {
+      const response = await axiosInstance.get("/report/export/task", {
         responseType: "blob",
       })
 
