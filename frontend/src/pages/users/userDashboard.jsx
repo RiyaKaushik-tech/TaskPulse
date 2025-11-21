@@ -34,7 +34,7 @@ const UserDashboard = () => {
     setPieChartData(taskDistributionData)
 
     const priorityLevelData = [
-      { priority: "Low", count: taskPriorityLevels?.low || 0 },
+      { priority: "low", count: taskPriorityLevels?.low || 0 },
       { priority: "Medium", count: taskPriorityLevels?.Medium || 0 },
       { priority: "High", count: taskPriorityLevels?.High || 0 },
     ]

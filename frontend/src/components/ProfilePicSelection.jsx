@@ -7,7 +7,7 @@ const ProfilePicSelection = ({image, setImage}) => {
     const [previewUrl , setPreviewUrl] = useState(null)
 
     const handleImageChange = (e)=>{
-        const file = e.target.file[0];
+        const file = e.target.files[0];
 
         if(file){
             setImage(file);

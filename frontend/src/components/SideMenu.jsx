@@ -53,7 +53,7 @@ const SideMenu = ({ activeMenu }) => {
       <div className="flex flex-col items-center mb-8">
         <div className="w-20 h-20 rounded-full bg-gray-100 overflow-hidden mb-4 border-2 border-blue-200">
           <img
-            src={currentUser?.profileImageUrl || null}
+            src={currentUser?.profileImageUrl || "/defaultProfile.png"}
             alt="Profile Image"
             className="w-full h-full object-cover"
           />

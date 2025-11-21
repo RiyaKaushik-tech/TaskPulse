@@ -4,9 +4,9 @@ import { FaEyeSlash, FaPeopleGroup } from "react-icons/fa6"
 import { FaEye } from "react-icons/fa"
 import { Link, useNavigate } from "react-router-dom"
 import { validateEmail } from "../../utils/helper"
-import ProfilePhotoSelector from "../../components/ProfilePicSelection"
+import ProfilePicSelection from "../../components/ProfilePicSelection"
 import axiosInstance from "../../utils/axiosInstance"
-import uploadImage from "../../utils/axiosInstance"
+import uploadImage from "../../utils/uploadImage"
 
 const SignUp = () => {
   const navigate = useNavigate()
@@ -97,7 +97,7 @@ const SignUp = () => {
 
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              <ProfilePhotoSelector
+              <ProfilePicSelection
                 image={profilePic}
                 setImage={setProfilePic}
               />
