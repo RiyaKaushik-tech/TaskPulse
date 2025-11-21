@@ -25,7 +25,7 @@ const Dashboard = () => {
     const taskPriorityLevels = data?.taskPriorityLevel || {}
 
     const taskDistributionData = [
-      { status: "Pending", count: taskDistribution?.Pending || 0 },
+      { status: "pending", count: taskDistribution?.pending || 0 },
       { status: "In Progress", count: taskDistribution?.InProgress || 0 },
       { status: "Completed", count: taskDistribution?.Completed || 0 },
     ]
@@ -34,8 +34,8 @@ const Dashboard = () => {
 
     const priorityLevelData = [
       { priority: "low", count: taskPriorityLevels?.low || 0 },
-      { priority: "Medium", count: taskPriorityLevels?.Medium || 0 },
-      { priority: "High", count: taskPriorityLevels?.High || 0 },
+      { priority: "medium", count: taskPriorityLevels?.medium || 0 },
+      { priority: "high", count: taskPriorityLevels?.high || 0 },
     ]
 
     setBarChartData(priorityLevelData)
@@ -98,11 +98,11 @@ const Dashboard = () => {
 
             <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-yellow-500">
               <h3 className="text-gray-500 text-sm font-medium">
-                Pending Tasks
+                pending Tasks
               </h3>
 
               <p className="text-3xl font-bold text-gray-800 mt-2">
-                {dashboardData?.charts?.taskDistribution?.Pending || 0}
+                {dashboardData?.charts?.taskDistribution?.pending || 0}
               </p>
             </div>
 

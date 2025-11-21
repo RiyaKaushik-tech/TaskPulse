@@ -352,7 +352,7 @@ export const getDashboardData = async (req, res, next) => {
       return acc;
     }, {});
 
-    const recentsTasks = await Task.find()
+    const recentTasks = await Task.find()
       .sort({
         createdBy: -1,
       })
@@ -370,7 +370,7 @@ export const getDashboardData = async (req, res, next) => {
         taskDistribution,
         taskPriorityLevel,
       },
-      recentsTasks,
+      recentTasks,
     });
   } catch (error) {
     next(error);
@@ -380,85 +380,99 @@ export const getDashboardData = async (req, res, next) => {
 export const getUserDashboardData = async (req, res, next) => {
   try {
     const userId = req.user.id;
+    if (!userId) return next(ErrorHandler(401, "Unauthorized"));
 
-    const userObjId = new mongoose.Types.ObjectId(userId)
+    const userObjId = new mongoose.Types.ObjectId(userId);
 
-    const totalCount = await Task.countDocuments();
-    const pendingTask = await Task.countDocuments({ status: "pending" });
-    const completedTask = await Task.countDocuments({ status: "completed" });
+    // use ObjectId for all queries and aggregates
+    const totalCount = await Task.countDocuments({ assignedTo: userObjId });
+    const pendingTask = await Task.countDocuments({
+      assignedTo: userObjId,
+      status: "pending",
+    });
+    const completedTask = await Task.countDocuments({
+      assignedTo: userObjId,
+      status: "completed",
+    });
     const overDueTask = await Task.countDocuments({
-      status: { $ne: "completed" }, 
+      assignedTo: userObjId,
+      status: { $ne: "completed" },
       dueDate: { $lt: new Date() },
     });
 
     const tasksStatus = ["completed", "in-progress", "pending"];
 
     const taskDistributionRaw = await Task.aggregate([
-      {
-        $match: { assignedTo: userObjId },
-      },
-      {
-        $group: {
-          _id: "$status",
-          count: { $sum: 1 },
-        },
-      },
+      { $match: { assignedTo: userObjId } },
+      { $group: { _id: "$status", count: { $sum: 1 } } },
     ]);
 
     const taskDistribution = tasksStatus.reduce((acc, status) => {
       const formattedKey = status.replace(/\s/g, "");
-
       acc[formattedKey] =
         taskDistributionRaw.find((item) => item._id === status)?.count || 0;
-
       return acc;
     }, {});
-
     taskDistribution["All"] = totalCount;
 
     const taskPriorities = ["low", "medium", "high"];
-
     const taskPriorityLevelRaw = await Task.aggregate([
-      {
-        $match: { assignedTo: userId },
-      },
-      {
-        $group: {
-          _id: "$priority",
-          count: { $sum: 1 },
-        },
-      },
+      { $match: { assignedTo: userObjId } },
+      { $group: { _id: "$priority", count: { $sum: 1 } } },
     ]);
 
     const taskPriorityLevel = taskPriorities.reduce((acc, priority) => {
       const formattedKey = priority.replace(/\s/g, "");
       acc[formattedKey] =
         taskPriorityLevelRaw.find((item) => item._id === priority)?.count || 0;
-
       return acc;
     }, {});
 
-    const recentsTasks = await Task.find({assignedTo: userId})
-      .sort({
-        createdBy: -1,
-      })
+    const recentTasks = await Task.find({ assignedTo: userObjId })
+      .sort({ createdBy: -1 })
       .limit(10)
       .select("title status priority dueDate createdBy");
 
-    res.status(200).json({
-      statics: {
-        totalCount,
-        pendingTask,
-        completedTask,
-        overDueTask,
-      },
-      charts: {
-        taskDistribution,
-        taskPriorityLevel,
-      },
-      recentsTasks,
+    return res.status(200).json({
+      statics: { totalCount, pendingTask, completedTask, overDueTask },
+      charts: { taskDistribution, taskPriorityLevel },
+      recentTasks,
     });
   } catch (error) {
-    next(error)
+    next(error);
   }
+};
+
+const prepareChartData = (data) => {
+  const charts = data || {};
+  const taskDistribution = charts.taskDistribution || {};
+  const taskPriorityLevels = charts.taskPriorityLevel || {};
+
+  console.log("charts raw:", charts); // debug
+
+  // Pie data (normalize various possible keys)
+  const pending = taskDistribution.pending || taskDistribution["pending"] || 0;
+  const inProgress =
+    taskDistribution["in-progress"] ||
+    taskDistribution.InProgress ||
+    taskDistribution.inProgress ||
+    0;
+  const completed =
+    taskDistribution.completed || taskDistribution.Completed || 0;
+
+  const taskDistributionData = [
+    { status: "pending", count: pending },
+    { status: "In Progress", count: inProgress },
+    { status: "Completed", count: completed },
+  ];
+  setPieChartData(taskDistributionData);
+
+  // Bar data: ensure keys low/medium/high exist and counts are numbers
+  const priorityLevelData = ["low", "medium", "high"].map((p) => ({
+    priority: p,
+    count: Number(taskPriorityLevels[p] ?? taskPriorityLevels[p.toLowerCase()] ?? 0),
+  }));
+
+  console.log("bar data:", priorityLevelData); // debug
+  setBarChartData(priorityLevelData);
 };

@@ -13,19 +13,19 @@ import {
 } from "recharts"
 
 const CustomBarChart = ({ data }) => {
-  // Fuction to alternate colors
+  // Function to alternate colors
   const getBarColor = (entry) => {
     switch (entry?.priority) {
       case "low":
         return "#4CAF50"
 
-      case "Medium":
+      case "medium":
         return "#FF9800"
 
-      case "High":
+      case "high":
         return "#F44336"
       default:
-        return "4CAF50"
+        return "#4CAF50"
     }
   }
 
@@ -34,7 +34,7 @@ const CustomBarChart = ({ data }) => {
       return (
         <div className="bg-white p-2 shadow-md rounded-lg border border-gray-300">
           <p className="text-xs font-semibold text-purple-800 mb-1">
-            {payload[0].payload.priority}
+            payload[0]?.name || payload[0]?.payload?.priority
           </p>
 
           <p className="text-sm text-gray-600">
@@ -70,8 +70,8 @@ const CustomBarChart = ({ data }) => {
           />
 
           <Bar
-            dataKey="count"
-            name={"priority"}
+            dataKey="priority"
+            // name={"priority"}
             fill="#FF8042"
             radius={[10, 10, 0, 0]}
           >

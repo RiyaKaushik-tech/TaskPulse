@@ -64,12 +64,12 @@ export const USER_SIDE_MENU_DATA = [
 
 export const PRIORITY_DATA = [
   { label: "Low", value: "low" },
-  { label: "Medium", value: "medium" },
-  { label: "High", value: "high" },
+  { label: "medium", value: "medium" },
+  { label: "high", value: "high" },
 ]
 
 export const STATUS_DATA = [
-  { label: "Pending", value: "Pending" },
+  { label: "pending", value: "pending" },
   { label: "In Progress", value: "In Progress" },
   { label: "Completed", value: "Completed" },
 ]

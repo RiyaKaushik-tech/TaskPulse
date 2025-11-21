@@ -22,7 +22,7 @@ const UserCard = ({ userInfo }) => {
 
       <div className="flex items-end gap-3 mt-5">
         <StatCard
-          label="Pending"
+          label="pending"
           count={userInfo?.pendingTasks || 0}
           status="pending"
         />
