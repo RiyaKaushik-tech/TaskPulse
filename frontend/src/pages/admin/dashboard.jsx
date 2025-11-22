@@ -22,7 +22,7 @@ const Dashboard = () => {
   // prepare data for pie chart
   const prepareChartData = (data) => {
     const taskDistribution = data?.taskDistribution || {}
-    const taskPriorityLevels = data?.taskPriorityLevel || {}
+    const taskpriorityLevels = data?.taskpriorityLevel || {}
 
     const taskDistributionData = [
       { status: "pending", count: taskDistribution?.pending || 0 },
@@ -33,9 +33,9 @@ const Dashboard = () => {
     setPieChartData(taskDistributionData)
 
     const priorityLevelData = [
-      { priority: "low", count: taskPriorityLevels?.low || 0 },
-      { priority: "medium", count: taskPriorityLevels?.medium || 0 },
-      { priority: "high", count: taskPriorityLevels?.high || 0 },
+      { priority: "low", count: taskpriorityLevels?.low || 0 },
+      { priority: "medium", count: taskpriorityLevels?.medium || 0 },
+      { priority: "high", count: taskpriorityLevels?.high || 0 },
     ]
 
     setBarChartData(priorityLevelData)
@@ -146,7 +146,7 @@ const Dashboard = () => {
 
           <div className="bg-white p-6 rounded-xl">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Task Priority Levels
+              Task priority Levels
             </h3>
 
             <div className="h-64">

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import DashboardLayout from "../../components/DashboardLayout"
@@ -22,23 +21,29 @@ const UserDashboard = () => {
 
   // prepare data for pie chart
   const prepareChartData = (data) => {
-    const taskDistribution = data?.taskDistribution || {}
-    const taskPriorityLevels = data?.taskPriorityLevel || {}
+    const charts = data || {}
+    const taskDistribution = charts.taskDistribution || {}
+    const taskPriorityLevels = charts.taskPriorityLevel || {} // <--- unified name
 
-    const taskDistributionData = [
-      { status: "pending", count: taskDistribution?.pending || 0 },
-      { status: "In Progress", count: taskDistribution?.InProgress || 0 },
-      { status: "Completed", count: taskDistribution?.Completed || 0 },
-    ]
+    console.log("charts raw:", charts) // debug
 
-    setPieChartData(taskDistributionData)
+    const pending = taskDistribution.pending || taskDistribution["pending"] || 0
+    const inProgress =
+      taskDistribution["in-progress"] || taskDistribution.InProgress || taskDistribution.inProgress || 0
+    const completed = taskDistribution.completed || taskDistribution.Completed || 0
 
-    const priorityLevelData = [
-      { priority: "low", count: taskPriorityLevels?.low || 0 },
-      { priority: "medium", count: taskPriorityLevels?.medium || 0 },
-      { priority: "high", count: taskPriorityLevels?.high || 0 },
-    ]
+    setPieChartData([
+      { status: "pending", count: pending },
+      { status: "In Progress", count: inProgress },
+      { status: "Completed", count: completed },
+    ])
 
+    const priorityLevelData = ["low", "medium", "high"].map((p) => ({
+      priority: p,
+      count: Number(taskPriorityLevels[p] ?? taskPriorityLevels[p.toLowerCase()] ?? 0),
+    }))
+
+    console.log("bar data:", priorityLevelData) // debug
     setBarChartData(priorityLevelData)
   }
 
@@ -138,7 +143,7 @@ const UserDashboard = () => {
 
           <div className="bg-white p-6 rounded-xl">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Task Priority Levels
+              Task priority Levels
             </h3>
 
             <div className="h-64">

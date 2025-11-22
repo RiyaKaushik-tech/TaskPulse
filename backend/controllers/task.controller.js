@@ -31,13 +31,14 @@ export const createTask = async (req, res, next) => {
           .filter((i) => i.text.length > 0)
       : [];
 
+    const normPriority = (priority || "medium").toString().toLowerCase();
     const task = await Task.create({
       title,
       description,
-      priority,
+      priority: normPriority,
       dueDate,
-      assignedTo,
-      attachment,
+      assignedTo: assignees,
+      attachments,
       todoCheckList: normalizedTodo,
       createdBy: req.user.id,
     });
@@ -333,22 +334,16 @@ export const getDashboardData = async (req, res, next) => {
 
     taskDistribution["All"] = totalCount;
 
+    // replace priority aggregation + object construction with normalized keys
     const taskPriorities = ["low", "medium", "high"];
 
     const taskPriorityLevelRaw = await Task.aggregate([
-      {
-        $group: {
-          _id: "$priority",
-          count: { $sum: 1 },
-        },
-      },
+      { $group: { _id: { $toLower: "$priority" }, count: { $sum: 1 } } },
     ]);
 
     const taskPriorityLevel = taskPriorities.reduce((acc, priority) => {
-      const formattedKey = priority.replace(/\s/g, "");
-      acc[formattedKey] =
+      acc[priority] =
         taskPriorityLevelRaw.find((item) => item._id === priority)?.count || 0;
-
       return acc;
     }, {});
 
@@ -368,7 +363,7 @@ export const getDashboardData = async (req, res, next) => {
       },
       charts: {
         taskDistribution,
-        taskPriorityLevel,
+        taskPriorityLevel, // <-- camelCase key expected by frontend
       },
       recentTasks,
     });
@@ -384,16 +379,9 @@ export const getUserDashboardData = async (req, res, next) => {
 
     const userObjId = new mongoose.Types.ObjectId(userId);
 
-    // use ObjectId for all queries and aggregates
     const totalCount = await Task.countDocuments({ assignedTo: userObjId });
-    const pendingTask = await Task.countDocuments({
-      assignedTo: userObjId,
-      status: "pending",
-    });
-    const completedTask = await Task.countDocuments({
-      assignedTo: userObjId,
-      status: "completed",
-    });
+    const pendingTask = await Task.countDocuments({ assignedTo: userObjId, status: "pending" });
+    const completedTask = await Task.countDocuments({ assignedTo: userObjId, status: "completed" });
     const overDueTask = await Task.countDocuments({
       assignedTo: userObjId,
       status: { $ne: "completed" },
@@ -409,22 +397,20 @@ export const getUserDashboardData = async (req, res, next) => {
 
     const taskDistribution = tasksStatus.reduce((acc, status) => {
       const formattedKey = status.replace(/\s/g, "");
-      acc[formattedKey] =
-        taskDistributionRaw.find((item) => item._id === status)?.count || 0;
+      acc[formattedKey] = taskDistributionRaw.find((item) => item._id === status)?.count || 0;
       return acc;
     }, {});
     taskDistribution["All"] = totalCount;
 
+    // normalize priority to lowercase in aggregation
     const taskPriorities = ["low", "medium", "high"];
     const taskPriorityLevelRaw = await Task.aggregate([
       { $match: { assignedTo: userObjId } },
-      { $group: { _id: "$priority", count: { $sum: 1 } } },
+      { $group: { _id: { $toLower: "$priority" }, count: { $sum: 1 } } },
     ]);
 
     const taskPriorityLevel = taskPriorities.reduce((acc, priority) => {
-      const formattedKey = priority.replace(/\s/g, "");
-      acc[formattedKey] =
-        taskPriorityLevelRaw.find((item) => item._id === priority)?.count || 0;
+      acc[priority] = taskPriorityLevelRaw.find((item) => item._id === priority)?.count || 0;
       return acc;
     }, {});
 
@@ -435,7 +421,7 @@ export const getUserDashboardData = async (req, res, next) => {
 
     return res.status(200).json({
       statics: { totalCount, pendingTask, completedTask, overDueTask },
-      charts: { taskDistribution, taskPriorityLevel },
+      charts: { taskDistribution, taskPriorityLevel }, // unified key
       recentTasks,
     });
   } catch (error) {
@@ -446,7 +432,7 @@ export const getUserDashboardData = async (req, res, next) => {
 const prepareChartData = (data) => {
   const charts = data || {};
   const taskDistribution = charts.taskDistribution || {};
-  const taskPriorityLevels = charts.taskPriorityLevel || {};
+  const taskpriorityLevels = charts.taskpriorityLevel || {};
 
   console.log("charts raw:", charts); // debug
 
@@ -470,7 +456,7 @@ const prepareChartData = (data) => {
   // Bar data: ensure keys low/medium/high exist and counts are numbers
   const priorityLevelData = ["low", "medium", "high"].map((p) => ({
     priority: p,
-    count: Number(taskPriorityLevels[p] ?? taskPriorityLevels[p.toLowerCase()] ?? 0),
+    count: Number(taskpriorityLevels[p] ?? taskpriorityLevels[p.toLowerCase()] ?? 0),
   }));
 
   console.log("bar data:", priorityLevelData); // debug

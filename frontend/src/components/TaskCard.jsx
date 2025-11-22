@@ -32,13 +32,13 @@ const TaskCard = ({
     }
   }
 
-  const getPriorityTagColor = () => {
+  const getpriorityTagColor = () => {
     switch (priority) {
       case "high":
         return "bg-red-100 text-red-800"
       case "medium":
         return "bg-yellow-100 text-yellow-800"
-      case "Low":
+      case "low":
         return "bg-green-100 text-green-800"
       default:
         return "bg-green-100 text-green-800"
@@ -58,9 +58,9 @@ const TaskCard = ({
         </div>
 
         <div
-          className={`text-[11px] font-medium ${getPriorityTagColor()} px-4 py-0.5 rounded-lg`}
+          className={`text-[11px] font-medium ${getpriorityTagColor()} px-4 py-0.5 rounded-lg`}
         >
-          {priority} Priority
+          {priority} priority
         </div>
       </div>
 

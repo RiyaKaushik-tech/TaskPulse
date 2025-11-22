@@ -105,7 +105,7 @@ const TaskDetails = () => {
 
                 <div className="grid grid-cols-12 gap-4 mt-4">
                   <div className="col-span-6 md:col-span-4">
-                    <InfoBox label={"Priority"} value={task?.priority} />
+                    <InfoBox label={"priority"} value={task?.priority} />
                   </div>
 
                   <div className="col-span-6 md:col-span-4">

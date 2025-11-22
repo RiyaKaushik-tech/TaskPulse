@@ -13,7 +13,7 @@ export const exportTaskReport = async (req, res, next) => {
       { header: "Task Id", key: "_id", width: 25 },
       { header: "Title", key: "title", width: 30 },
       { header: "Description", key: "description", width: 50 },
-      { header: "Priority", key: "priority", width: 15 },
+      { header: "priority", key: "priority", width: 15 },
       { header: "Status", key: "status", width: 20 },
       { header: "Due Date", key: "dueDate", width: 20 },
       { header: "Assigned To", key: "assignedTo", width: 30 },
