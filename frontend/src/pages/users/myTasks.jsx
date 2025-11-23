@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react"
 import DashboardLayout from "../../components/DashboardLayout"
 import { useNavigate } from "react-router-dom"
@@ -9,6 +8,7 @@ import TaskCard from "../../components/TaskCard"
 import toast from "react-hot-toast"
 
 const MyTask = () => {
+  
   const [allTasks, setAllTasks] = useState([])
   const [tabs, setTabs] = useState([
     { label: "All", count: 0 },
@@ -48,7 +48,11 @@ const MyTask = () => {
   }
 
   const handleClick = (taskId) => {
-    navigate(`/user/task-details/${taskId}`)
+    if (!taskId) {
+      console.warn("Missing task _id");
+      return;
+    }
+    navigate(`/tasks/${taskId}`);
   }
 
   useEffect(() => {
@@ -78,7 +82,7 @@ const MyTask = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           {allTasks?.length > 0 ? (
-            allTasks?.map((item, index) => (
+            allTasks.map((item) => (
               <TaskCard
                 key={item._id}
                 title={item.title}
@@ -88,12 +92,10 @@ const MyTask = () => {
                 progress={item.progress}
                 createdAt={item.createdAt}
                 dueDate={item.dueDate}
-                assignedTo={item.assignedTo?.map(
-                  (item) => item.profileImageUrl
-                )}
+                assignedTo={item.assignedTo?.map(u => u.profileImageUrl)}
                 attachmentCount={item.attachments?.length || 0}
                 completedTodoCount={item.completedTodoCount || 0}
-                todoChecklist={item.todoChecklist || []}
+                todoCheckList={item.todoCheckList || []} // match backend field name
                 onClick={() => handleClick(item._id)}
               />
             ))

@@ -7,7 +7,7 @@ import CreateTasks from "./pages/admin/createTasks.jsx"
 import ManageTasks from "./pages/admin/manageTasks.jsx"
 import ManageUsers from "./pages/admin/manageUsers.jsx"
 import MyTasks from "./pages/users/myTasks.jsx"
-import TaskDeatils from "./pages/users/taskDeatils.jsx"
+import TaskDetails from "./pages/users/TaskDetails.jsx"
 import UserDashboard from "./pages/users/userDashboard.jsx"
 import Dashboard from "./pages/admin/dashboard.jsx"
 import HomePage from "./pages/home.jsx"
@@ -36,8 +36,9 @@ function App() {
       {/* users routes */}
       <Route element={<PrivateRoute allowedRoles={["user"]}/>}>
         <Route path="/users/myTasks" element={<MyTasks/>} />
-        <Route path="/users/taskDeatils" element={<TaskDeatils/>} />
+        <Route path="/users/taskDetails" element={<TaskDetails />} />
         <Route path="/users/userDashboard" element={<UserDashboard/>} />
+        <Route path="/tasks/:id" element={<TaskDetails />} />
       </Route>
       </Routes>
     </ErrorBoundary>

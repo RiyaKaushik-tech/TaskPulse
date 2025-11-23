@@ -26,7 +26,7 @@ const CreateTask = () => {
     priority: "low",
     dueDate: null,
     assignedTo: [],
-    todoChecklist: [],
+    todoCheckList: [],
     attachments: [],
   })
 
@@ -52,7 +52,7 @@ const CreateTask = () => {
       priority: "low",
       dueDate: null,
       assignedTo: [],
-      todoChecklist: [],
+      todoCheckList: [],
       attachments: [],
     })
   }
@@ -60,7 +60,7 @@ const CreateTask = () => {
   // create task
   const createTask = async () => {
     try {
-      const todolist = taskData.todoChecklist?.map((item) => ({
+      const todolist = taskData.todoCheckList?.map((item) => ({
         text: item,
         completed: false,
       }))
@@ -68,7 +68,7 @@ const CreateTask = () => {
       const response = await axiosInstance.post("/tasks/create-task", {
         ...taskData,
         dueDate: new Date(taskData.dueDate).toISOString(),
-        todoChecklist: todolist,
+        todoCheckList: todolist,
       })
 
       toast.success("Task created successfully!")
@@ -85,9 +85,9 @@ const CreateTask = () => {
   // update task
   const updateTask = async () => {
     try {
-      const todolist = taskData.todoChecklist?.map((item) => {
-        const prevTodoChecklist = currentTask?.todoChecklist || []
-        const matchedTask = prevTodoChecklist.find((task) => task.text === item)
+      const todolist = taskData.todoCheckList?.map((item) => {
+        const prevtodoCheckList = currentTask?.todoCheckList || []
+        const matchedTask = prevtodoCheckList.find((task) => task.text === item)
 
         return {
           text: item,
@@ -98,7 +98,7 @@ const CreateTask = () => {
       const response = await axiosInstance.put(`/tasks/${taskId}`, {
         ...taskData,
         dueDate: new Date(taskData.dueDate).toISOString(),
-        todoChecklist: todolist,
+        todoCheckList: todolist,
       })
 
       toast.success("Task updated successfully!")
@@ -134,7 +134,7 @@ const CreateTask = () => {
       return
     }
 
-    if (taskData.todoChecklist?.length === 0) {
+    if (taskData.todoCheckList?.length === 0) {
       setError("Add atleast one todo task!")
       return
     }
@@ -166,8 +166,8 @@ const CreateTask = () => {
             ? moment(taskInfo?.dueDate).format("YYYY-MM-DD")
             : null,
           assignedTo: taskInfo?.assignedTo?.map((item) => item?._id || []),
-          todoChecklist:
-            taskInfo?.todoChecklist?.map((item) => item?.text) || [],
+          todoCheckList:
+            taskInfo?.todoCheckList?.map((item) => item?.text) || [],
           attachments: taskInfo?.attachments || [],
         }))
       }
@@ -311,9 +311,9 @@ const CreateTask = () => {
                 </label>
 
                 <TodoListInput
-                  todoList={taskData?.todoChecklist}
+                  todoList={taskData?.todoCheckList}
                   setTodoList={(value) =>
-                    handleValueChange("todoChecklist", value)
+                    handleValueChange("todoCheckList", value)
                   }
                 />
               </div>

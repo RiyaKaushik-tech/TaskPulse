@@ -4,7 +4,7 @@ import React from "react"
 import { useNavigate } from "react-router-dom"
 
 const RecentTasks = ({ tasks }) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -12,7 +12,7 @@ const RecentTasks = ({ tasks }) => {
         <h3 className="text-lg font-semibold text-gray-800">Recent Tasks</h3>
 
         <button
-          onClick={() => navigate("/admin/tasks")}
+          onClick={() => navigate(`/users/myTasks`)}
           className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors p-2 bg-blue-50 hover:bg-blue-100"
         >
           See More →

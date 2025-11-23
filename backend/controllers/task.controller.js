@@ -24,11 +24,11 @@ export const createTask = async (req, res, next) => {
     // normalize todoCheckList: keep items that have non-empty text
     const normalizedTodo = Array.isArray(todoCheckList)
       ? todoCheckList
-          .map((item) => ({
-            text: item && item.text ? String(item.text).trim() : "",
-            completed: !!(item && item.completed),
+          .map(item => ({
+            text: String(item?.text ?? item?.task ?? "").trim(),
+            completed: !!item?.completed
           }))
-          .filter((i) => i.text.length > 0)
+          .filter(i => i.text.length > 0)
       : [];
 
     const normPriority = (priority || "medium").toString().toLowerCase();
@@ -239,7 +239,7 @@ export const updateTaskStatus = async (req, res, next) => {
   }
 };
 
-export const updateTodoChecklist = async (req, res, next) => {
+export const updatetodoCheckList = async (req, res, next) => {
   try {
     if (!req.user || !req.user.id)
       return next(ErrorHandler(401, "Unauthorized"));
@@ -264,13 +264,12 @@ export const updateTodoChecklist = async (req, res, next) => {
     const { todoCheckList } = req.body || {};
     const sanitized = Array.isArray(todoCheckList)
       ? todoCheckList
-          .map((item) => ({
+          .map(item => ({
             text: String(item?.text ?? item?.task ?? "").trim(),
-            completed: !!item?.completed,
+            completed: !!item?.completed
           }))
-          .filter((i) => i.text.length > 0)
+          .filter(i => i.text.length > 0)
       : task.todoCheckList || [];
-
     task.todoCheckList = sanitized;
 
     const completeCount = task.todoCheckList.filter(
