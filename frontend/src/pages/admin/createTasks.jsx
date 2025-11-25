@@ -20,15 +20,29 @@ const CreateTask = () => {
 
   const navigate = useNavigate()
 
+  // default form state so inputs never become undefined
   const [taskData, setTaskData] = useState({
     title: "",
     description: "",
     priority: "low",
-    dueDate: null,
-    assignedTo: [],
-    todoCheckList: [],
+    dueDate: null,           // Date or null
+    assignedTo: [],         // array of ids
+    todoCheckList: [],      // array of { text, completed }
     attachments: [],
   })
+
+  // when you load existing task by id, normalize fields:
+  const loadTask = (apiTask) => {
+    setTaskData({
+      title: apiTask?.title ?? "",
+      description: apiTask?.description ?? "",
+      priority: (apiTask?.priority ?? "low").toString().toLowerCase(),
+      dueDate: apiTask?.dueDate ? new Date(apiTask.dueDate) : null,
+      assignedTo: Array.isArray(apiTask?.assignedTo) ? apiTask.assignedTo.map(a => a._id ?? a) : [],
+      todoCheckList: Array.isArray(apiTask?.todoCheckList) ? apiTask.todoCheckList.map(i => ({ text: i.text ?? i.task ?? "", completed: !!i.completed })) : [],
+      attachments: Array.isArray(apiTask?.attachments) ? apiTask.attachments : [],
+    })
+  }
 
   const [currentTask, setCurrentTask] = useState(null)
 
@@ -160,20 +174,7 @@ const CreateTask = () => {
       if (response.data) {
         const taskInfo = response.data
         setCurrentTask(taskInfo)
-
-        setTaskData((prevState) => ({
-          ...prevState,
-          title: taskInfo?.title,
-          description: taskInfo?.description,
-          priority: taskInfo?.priority,
-          dueDate: taskInfo?.dueDate
-            ? moment(taskInfo?.dueDate).format("YYYY-MM-DD")
-            : null,
-          assignedTo: taskInfo?.assignedTo?.map((item) => item?._id || []),
-          todoCheckList:
-            taskInfo?.todoCheckList?.map((item) => item?.text) || [],
-          attachments: taskInfo?.attachments || [],
-        }))
+        loadTask(taskInfo)
       }
     } catch (error) {
       console.log("Error fetching task details: ", error)
@@ -280,7 +281,7 @@ const CreateTask = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label>
                     Due Date
                   </label>
 

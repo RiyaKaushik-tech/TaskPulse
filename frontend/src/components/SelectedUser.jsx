@@ -1,22 +1,18 @@
-
 import React, { useEffect, useState } from "react"
 import axiosInstance from "../utils/axiosInstance.js"
 import { FaUsers } from "react-icons/fa"
 import Modal from "./Modal"
 import AvatarGroup from "./AvatarGroup"
 
-const SelectedUsers = ({ selectedUser, setSelectedUser }) => {
+const SelectedUsers = ({ selectedUser = [], setSelectedUser = () => {} }) => {
   const [allUsers, setAllUsers] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [tempSelectedUser, setTempSelectedUser] = useState([])
-
-  // console.log(allUsers)
+  const [tempSelectedUser, setTempSelectedUser] = useState(Array.isArray(selectedUser) ? selectedUser : [])
 
   const getAllUsers = async () => {
     try {
       const response = await axiosInstance.get("/users/get-users")
-
-      if (response.data?.length > 0) {
+      if (Array.isArray(response.data) && response.data.length > 0) {
         setAllUsers(response.data)
       }
     } catch (error) {
@@ -26,33 +22,25 @@ const SelectedUsers = ({ selectedUser, setSelectedUser }) => {
 
   const toggleUserSelection = (userId) => {
     setTempSelectedUser((prev) =>
-      prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
+      Array.isArray(prev) && prev.includes(userId) ? prev.filter((id) => id !== userId) : [...(Array.isArray(prev) ? prev : []), userId]
     )
   }
 
   const handleAssign = () => {
-    setSelectedUser(tempSelectedUser)
+    setSelectedUser(Array.isArray(tempSelectedUser) ? tempSelectedUser : [])
     setIsModalOpen(false)
   }
 
-  const selectedUserAvatars = allUsers
-    .filter((user) => selectedUser.includes(user._id))
-    .map((user) => user.profileImageUrl)
+  const selectedUserAvatars = (allUsers || [])
+    .filter((user) => Array.isArray(selectedUser) && selectedUser.includes(user._id))
+    .map((user) => user.profileImageUrl || "")
 
   useEffect(() => {
     getAllUsers()
-
-    return () => {}
   }, [])
 
   useEffect(() => {
-    if (selectedUser.length === 0) {
-      setTempSelectedUser([])
-    }
-
-    return () => {}
+    setTempSelectedUser(Array.isArray(selectedUser) ? selectedUser : [])
   }, [selectedUser])
 
   return (

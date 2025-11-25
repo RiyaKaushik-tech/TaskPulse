@@ -20,27 +20,32 @@ const Dashboard = () => {
   const [barChartData, setBarChartData] = useState([])
 
   // prepare data for pie chart
-  const prepareChartData = (data) => {
-    const taskDistribution = data?.taskDistribution || {}
-    const taskpriorityLevels = data?.taskpriorityLevel || {}
+ const prepareChartData = (data) => {
+    const charts = data || {}
+    const taskDistribution = charts.taskDistribution || {}
+    const taskPriorityLevels = charts.taskPriorityLevel || {} // <--- unified name
 
-    const taskDistributionData = [
-      { status: "pending", count: taskDistribution?.pending || 0 },
-      { status: "In Progress", count: taskDistribution?.InProgress || 0 },
-      { status: "Completed", count: taskDistribution?.Completed || 0 },
-    ]
+    console.log("charts raw:", charts) // debug
 
-    setPieChartData(taskDistributionData)
+    const pending = taskDistribution.pending || taskDistribution["pending"] || 0
+    const inProgress =
+      taskDistribution["in-progress"] || taskDistribution.InProgress || taskDistribution.inProgress || 0
+    const completed = taskDistribution.completed || taskDistribution.Completed || 0
 
-    const priorityLevelData = [
-      { priority: "low", count: taskpriorityLevels?.low || 0 },
-      { priority: "medium", count: taskpriorityLevels?.medium || 0 },
-      { priority: "high", count: taskpriorityLevels?.high || 0 },
-    ]
+    setPieChartData([
+      { status: "pending", count: pending },
+      { status: "In Progress", count: inProgress },
+      { status: "Completed", count: completed },
+    ])
 
+    const priorityLevelData = ["low", "medium", "high"].map((p) => ({
+      priority: p,
+      count: Number(taskPriorityLevels[p] ?? taskPriorityLevels[p.toLowerCase()] ?? 0),
+    }))
+
+    console.log("bar data:", priorityLevelData) // debug
     setBarChartData(priorityLevelData)
   }
-
   const getDashboardData = async () => {
     try {
       const response = await axiosInstance.get("/tasks/dashboard-data")
