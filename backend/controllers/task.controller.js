@@ -9,45 +9,57 @@ export const createTask = async (req, res, next) => {
       description,
       priority,
       dueDate,
-      assignedTo,
-      attachment,
+      assignedTo = [],
+      attachments = [],
+      attachment,            // legacy single
       todoCheckList,
+      todoChecklist,         // wrong key from frontend
     } = req.body || {};
 
-    if (!req.user || !req.user.id)
-      return next(ErrorHandler(401, "Unauthorized"));
+    if (!req.user?.id) return next(ErrorHandler(401, "Unauthorized"));
+    if (!title) return next(ErrorHandler(400, "Title is required"));
 
-    if (!Array.isArray(assignedTo)) {
-      return next(ErrorHandler(400, "assignedTo must be an array of User IDs"));
-    }
+    if (!Array.isArray(assignedTo))
+      return next(ErrorHandler(400, "assignedTo must be an array"));
 
-    // normalize todoCheckList: keep items that have non-empty text
-    const normalizedTodo = Array.isArray(todoCheckList)
+    const assignees = assignedTo.map(id =>
+      mongoose.Types.ObjectId.isValid(String(id))
+        ? new mongoose.Types.ObjectId(String(id))
+        : id
+    );
+
+    const rawList = Array.isArray(todoCheckList)
       ? todoCheckList
-          .map(item => ({
-            text: String(item?.text ?? item?.task ?? "").trim(),
-            completed: !!item?.completed
-          }))
-          .filter(i => i.text.length > 0)
+      : Array.isArray(todoChecklist)
+      ? todoChecklist
       : [];
 
-    const normPriority = (priority || "medium").toString().toLowerCase();
+    const normalizedTodo = rawList
+      .map(item => ({
+        text: String(item?.text ?? item?.task ?? "").trim(),
+        completed: !!item?.completed,
+      }))
+      .filter(i => i.text.length > 0);
+
+    const normPriority = (priority || "medium").toLowerCase();
+
     const task = await Task.create({
       title,
       description,
       priority: normPriority,
-      dueDate,
+      dueDate: dueDate ? new Date(dueDate) : undefined,
       assignedTo: assignees,
-      attachments,
+      attachments: Array.isArray(attachments) ? attachments : attachment ? [attachment] : [],
       todoCheckList: normalizedTodo,
       createdBy: req.user.id,
+      status: "pending",
+      progress: 0,
     });
 
-    return res
-      .status(201)
-      .json({ success: true, message: "task created", task });
-  } catch (error) {
-    next(error);
+    return res.status(201).json({ success: true, task });
+  } catch (err) {
+    console.error("createTask error:", err);
+    next(err);
   }
 };
 
@@ -239,10 +251,9 @@ export const updateTaskStatus = async (req, res, next) => {
   }
 };
 
-export const updatetodoCheckList = async (req, res, next) => {
+export const updateTodoChecklist = async (req, res, next) => {
   try {
-    if (!req.user || !req.user.id)
-      return next(ErrorHandler(401, "Unauthorized"));
+    if (!req.user?.id) return next(ErrorHandler(401, "Unauthorized"));
 
     const id = req.params?.id;
     if (!id) return next(ErrorHandler(400, "Missing task id"));
@@ -250,54 +261,47 @@ export const updatetodoCheckList = async (req, res, next) => {
     const task = await Task.findById(id);
     if (!task) return next(ErrorHandler(404, "Task not found"));
 
-    // check if requester is assigned or is admin
+    // allow if assigned OR admin
     const isAssigned = (task.assignedTo || []).some(
-      (u) => u.toString() === req.user.id.toString()
+      u => String(u) === String(req.user.id)
     );
-    if (!isAssigned && req.user.role !== "admin") {
-      return next(
-        ErrorHandler(403, "You are not authorized to update the checklist")
-      );
-    }
+    if (!isAssigned && req.user.role !== "admin")
+      return next(ErrorHandler(403, "Not allowed"));
 
-    // sanitize incoming todoCheckList (accept both {text} and legacy {task})
-    const { todoCheckList } = req.body || {};
-    const sanitized = Array.isArray(todoCheckList)
-      ? todoCheckList
+    const incoming = req.body?.todoCheckList || req.body?.todoChecklist;
+    const sanitized = Array.isArray(incoming)
+      ? incoming
           .map(item => ({
             text: String(item?.text ?? item?.task ?? "").trim(),
-            completed: !!item?.completed
+            completed: !!item?.completed,
           }))
           .filter(i => i.text.length > 0)
       : task.todoCheckList || [];
+
     task.todoCheckList = sanitized;
 
-    const completeCount = task.todoCheckList.filter(
-      (item) => item.completed
-    ).length;
-    const totalCount = task.todoCheckList.length;
-    task.progress =
-      totalCount > 0 ? Math.round((completeCount / totalCount) * 100) : 0;
+    const total = task.todoCheckList.length;
+    const done = task.todoCheckList.filter(i => i.completed).length;
+    task.progress = total > 0 ? Math.round((done / total) * 100) : 0;
+    task.status =
+      task.progress === 100
+        ? "completed"
+        : task.progress > 0
+        ? "in-progress"
+        : "pending";
 
-    // update status based on progress
-    if (task.progress === 100) task.status = "completed";
-    else if (task.progress > 0) task.status = "in-progress";
-    else task.status = "pending";
-
-    await task.save();
-
-    const updatedTask = await Task.findById(id).populate(
+    const saved = await task.save();
+    const populated = await Task.findById(saved._id).populate(
       "assignedTo",
-      "name email profilePicUrl"
+      "name email profileImageUrl profilePicUrl"
     );
 
-    return res.status(200).json({
-      success: true,
-      message: "Task checklist updated",
-      task: updatedTask,
-    });
-  } catch (error) {
-    next(error);
+    return res
+      .status(200)
+      .json({ success: true, message: "Checklist updated", task: populated });
+  } catch (err) {
+    console.error("updateTodoChecklist error:", err);
+    next(err);
   }
 };
 

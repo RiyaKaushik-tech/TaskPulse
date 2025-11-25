@@ -25,7 +25,7 @@ export const SIDE_MENU_DATA = [
     id: 3,
     label: "Create Task",
     icon: MdAddTask,
-    path: "/admin/createTasks",
+    path: "/admin/create-task",
   },
   {
     id: 4,

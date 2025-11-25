@@ -78,7 +78,7 @@ const Dashboard = () => {
             <div className="mt-4 md:mt-0">
               <button
                 className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-2 rounded-lg font-medium transition-all duration-200 shadow-md"
-                onClick={() => navigate("/admin/createTasks")}
+                onClick={() => navigate("/admin/create-tasks")}
               >
                 Create New Task
               </button>

@@ -60,16 +60,20 @@ const CreateTask = () => {
   // create task
   const createTask = async () => {
     try {
-      const todolist = taskData.todoCheckList?.map((item) => ({
-        text: item,
-        completed: false,
-      }))
+      const payload = {
+        title: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority,
+        dueDate: taskData.dueDate,
+        assignedTo: taskData.assignedTo, // array of user ids
+        attachments: taskData.attachments, // array
+        todoCheckList: taskData.todoCheckList.map((t) => ({
+          text: t,
+          completed: false,
+        })),
+      }
 
-      const response = await axiosInstance.post("/tasks/create-task", {
-        ...taskData,
-        dueDate: new Date(taskData.dueDate).toISOString(),
-        todoCheckList: todolist,
-      })
+      const response = await axiosInstance.post("/tasks/create-task", payload)
 
       toast.success("Task created successfully!")
 

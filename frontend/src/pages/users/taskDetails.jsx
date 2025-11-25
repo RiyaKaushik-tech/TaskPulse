@@ -49,18 +49,12 @@ const TaskDetails = () => {
     if (!list[index]) return;
     list[index].completed = !list[index].completed;
     try {
-      const response = await axiosInstance.put(`/tasks/${id}/todo`, {
-        todoCheckList: list, // send correct key
+      const res = await axiosInstance.put(`/tasks/${id}/todo`, {
+        todoCheckList: list,
       });
-      if (response.status === 200) {
-        setTask(response.data?.task || task);
-      } else {
-        list[index].completed = !list[index].completed;
-        setTask({ ...task, todoCheckList: list });
-      }
-    } catch {
-      list[index].completed = !list[index].completed;
-      setTask({ ...task, todoCheckList: list });
+      if (res.status === 200) setTask(res.data.task);
+    } catch (e) {
+      list[index].completed = !list[index].completed; // revert
     }
   };
 
@@ -133,14 +127,16 @@ const TaskDetails = () => {
                   <label className="text-xs font-medium text-slate-500">
                     Todo Checklist
                   </label>
-                  {(task.todoCheckList || []).map((item, index) => (
-                    <TodoCheckItem
-                      key={index}
-                      text={item.text}
-                      isChecked={!!item.completed}
-                      onChange={() => updateTodoChecklist(index)}
-                    />
-                  ))}
+                  {(task.todoCheckList || task.todoChecklist || []).map(
+                    (item, i) => (
+                      <TodoCheckItem
+                        key={i}
+                        text={item.text}
+                        isChecked={!!item.completed}
+                        onChange={() => updateTodoChecklist(i)}
+                      />
+                    )
+                  )}
                 </div>
 
                 {task.attachments?.length > 0 && (

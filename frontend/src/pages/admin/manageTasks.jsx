@@ -45,7 +45,7 @@ const ManageTasks = () => {
   }
 
   const handleClick = (taskData) => {
-    navigate("/admin/createTasks", { state: { taskId: taskData._id } })
+    navigate("/admin/create-task", { state: { taskId: taskData._id } })
   }
 
   const handleDownloadReport = async () => {
