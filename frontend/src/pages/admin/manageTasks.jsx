@@ -13,7 +13,7 @@ const ManageTasks = () => {
   const [tabs, setTabs] = useState("All")
   const [filterStatus, setFilterStatus] = useState("All")
 
-  console.log(tabs)
+  // console.log(tabs)
 
   const navigate = useNavigate()
 

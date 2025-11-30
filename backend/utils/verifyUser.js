@@ -8,8 +8,8 @@ import jwt from "jsonwebtoken";
 export const verifyUser = (req, res, next) => {
   try {
     // Debug: helpful while troubleshooting token delivery
-    console.log("verifyUser -> headers.authorization:", req.body);
-    console.log("verifyUser -> cookies:", req.cookies);
+    // console.log("verifyUser -> headers.authorization:", req.body);
+    // console.log("verifyUser -> cookies:", req.cookies);
 
     const authHeader = req.headers.authorization || "";
     const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;

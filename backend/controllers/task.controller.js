@@ -437,7 +437,7 @@ const prepareChartData = (data) => {
   const taskDistribution = charts.taskDistribution || {};
   const taskpriorityLevels = charts.taskpriorityLevel || {};
 
-  console.log("charts raw:", charts); // debug
+  // console.log("charts raw:", charts); // debug
 
   // Pie data (normalize various possible keys)
   const pending = taskDistribution.pending || taskDistribution["pending"] || 0;
@@ -462,6 +462,6 @@ const prepareChartData = (data) => {
     count: Number(taskpriorityLevels[p] ?? taskpriorityLevels[p.toLowerCase()] ?? 0),
   }));
 
-  console.log("bar data:", priorityLevelData); // debug
+  // console.log("bar data:", priorityLevelData); // debug
   setBarChartData(priorityLevelData);
 };

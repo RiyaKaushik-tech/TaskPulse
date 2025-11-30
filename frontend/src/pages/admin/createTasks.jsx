@@ -121,7 +121,7 @@ const CreateTask = () => {
 
       toast.success("Task updated successfully!")
 
-      console.log(response.data)
+      // console.log(response.data)
     } catch (error) {
       console.log("Error updating task: ", error)
       toast.error("Error updating task!")

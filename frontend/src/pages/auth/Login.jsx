@@ -51,7 +51,7 @@ const Login = () => {
         }
       )
 
-      console.log(response.data)
+      // console.log(response.data)
 
       if (response.data.role === "admin") {
         dispatch(signInSuccess(response.data))

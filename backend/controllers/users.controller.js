@@ -41,7 +41,7 @@ export const getUserById = async (req, res, next) => {
     try {
         // accept many common param names and fallback to authenticated user
         const id = req.params._id || req.params.id || req.params.userId || req.user?.id;
-        console.log("getUserById -> looking for id:", id);
+        // console.log("getUserById -> looking for id:", id);
 
         if (!id) return next(ErrorHandler(400, "Missing user id"));
 

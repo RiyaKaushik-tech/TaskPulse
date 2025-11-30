@@ -25,7 +25,7 @@ const Dashboard = () => {
     const taskDistribution = charts.taskDistribution || {}
     const taskPriorityLevels = charts.taskPriorityLevel || {} // <--- unified name
 
-    console.log("charts raw:", charts) // debug
+    // console.log("charts raw:", charts) // debug
 
     const pending = taskDistribution.pending || taskDistribution["pending"] || 0
     const inProgress =
@@ -43,7 +43,7 @@ const Dashboard = () => {
       count: Number(taskPriorityLevels[p] ?? taskPriorityLevels[p.toLowerCase()] ?? 0),
     }))
 
-    console.log("bar data:", priorityLevelData) // debug
+    // console.log("bar data:", priorityLevelData) // debug
     setBarChartData(priorityLevelData)
   }
   const getDashboardData = async () => {

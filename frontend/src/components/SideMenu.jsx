@@ -14,7 +14,7 @@ const SideMenu = ({ activeMenu }) => {
   const { currentUser } = useSelector((state) => state.user)
 
   const handleClick = (route) => {
-    console.log(route)
+    // console.log(route)
 
     if (route === "logout") {
       handleLogout()
@@ -30,7 +30,7 @@ const SideMenu = ({ activeMenu }) => {
 
       if (response.data) {
         dispatch(signOutSuccess())
-        console.log("logout : ",response.data)
+        // console.log("logout : ",response.data)
         navigate("/login")
       }
     } catch (error) {
