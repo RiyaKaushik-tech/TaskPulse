@@ -15,22 +15,22 @@ const Dashboard = () => {
 
   const { currentUser } = useSelector((state) => state.user)
 
-  const [dashboardData, setDashboardData] = useState([])
+  // make this null so conditional rendering is correct
+  const [dashboardData, setDashboardData] = useState(null)
   const [pieChartData, setPieChartData] = useState([])
   const [barChartData, setBarChartData] = useState([])
 
-  // prepare data for pie chart
- const prepareChartData = (data) => {
-    const charts = data || {}
-    const taskDistribution = charts.taskDistribution || {}
-    const taskPriorityLevels = charts.taskPriorityLevel || {} // <--- unified name
+  // normalize charts and return an object with safe keys
+  const prepareChartData = (charts = {}) => {
+    const dist = charts.taskDistribution || {}
+    const priorityLevels = charts.taskPriorityLevel || {}
 
-    // console.log("charts raw:", charts) // debug
-
-    const pending = taskDistribution.pending || taskDistribution["pending"] || 0
-    const inProgress =
-      taskDistribution["in-progress"] || taskDistribution.InProgress || taskDistribution.inProgress || 0
-    const completed = taskDistribution.completed || taskDistribution.Completed || 0
+    const all = Number(dist.All ?? dist.all ?? dist.total ?? 0)
+    const pending = Number(dist.pending ?? dist.Pending ?? 0)
+    const inProgress = Number(
+      dist["in-progress"] ?? dist.inProgress ?? dist.InProgress ?? dist["In Progress"] ?? 0
+    )
+    const completed = Number(dist.completed ?? dist.Completed ?? 0)
 
     setPieChartData([
       { status: "pending", count: pending },
@@ -40,25 +40,36 @@ const Dashboard = () => {
 
     const priorityLevelData = ["low", "medium", "high"].map((p) => ({
       priority: p,
-      count: Number(taskPriorityLevels[p] ?? taskPriorityLevels[p.toLowerCase()] ?? 0),
+      count: Number(priorityLevels[p] ?? priorityLevels[p.toLowerCase()] ?? 0),
     }))
-
-    // console.log("bar data:", priorityLevelData) // debug
     setBarChartData(priorityLevelData)
+
+    // return normalized charts shape for UI cards
+    return {
+      taskDistribution: { All: all, pending, inProgress, completed },
+      taskPriorityLevel: priorityLevels,
+    }
   }
+
   const getDashboardData = async () => {
     try {
       const response = await axiosInstance.get("/tasks/dashboard-data")
+      const raw = response?.data ?? {}
 
-      if (response.data) {
-        setDashboardData(response.data)
-        prepareChartData(response.data?.charts || null)
-      }
+      // backend may wrap charts directly or return top-level charts; normalize both cases
+      const charts = raw.charts ?? raw
+      const recentTasks = raw.recentTasks || raw.recentTasks || raw.recent || []
+
+      const normalized = prepareChartData(charts)
+
+      setDashboardData({
+        charts: normalized,
+        recentTasks,
+      })
     } catch (error) {
       console.log("Error fetching dashboard data: ", error)
     }
   }
-
   useEffect(() => {
     getDashboardData()
 
@@ -95,39 +106,29 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
               <h3 className="text-gray-500 text-sm font-medium">Total Tasks</h3>
-
               <p className="text-3xl font-bold text-gray-800 mt-2">
-                {dashboardData?.charts?.taskDistribution?.All || 0}
+                {dashboardData?.charts?.taskDistribution?.All ?? 0}
               </p>
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-yellow-500">
-              <h3 className="text-gray-500 text-sm font-medium">
-                pending Tasks
-              </h3>
-
+              <h3 className="text-gray-500 text-sm font-medium">Pending Tasks</h3>
               <p className="text-3xl font-bold text-gray-800 mt-2">
-                {dashboardData?.charts?.taskDistribution?.pending || 0}
+                {dashboardData?.charts?.taskDistribution?.pending ?? 0}
               </p>
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
-              <h3 className="text-gray-500 text-sm font-medium">
-                In Progress Tasks
-              </h3>
-
+              <h3 className="text-gray-500 text-sm font-medium">In Progress Tasks</h3>
               <p className="text-3xl font-bold text-gray-800 mt-2">
-                {dashboardData?.charts?.taskDistribution?.InProgress || 0}
+                {dashboardData?.charts?.taskDistribution?.inProgress ?? 0}
               </p>
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-red-500">
-              <h3 className="text-gray-500 text-sm font-medium">
-                Completed Tasks
-              </h3>
-
+              <h3 className="text-gray-500 text-sm font-medium">Completed Tasks</h3>
               <p className="text-3xl font-bold text-gray-800 mt-2">
-                {dashboardData?.charts?.taskDistribution?.Completed || 0}
+                {dashboardData?.charts?.taskDistribution?.completed ?? 0}
               </p>
             </div>
           </div>
@@ -161,7 +162,7 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Task Section */}
-        <RecentTasks tasks={dashboardData?.recentTasks} />
+        <RecentTasks tasks={dashboardData?.recentTasks || []} />
       </div>
     </DashboardLayout>
   )

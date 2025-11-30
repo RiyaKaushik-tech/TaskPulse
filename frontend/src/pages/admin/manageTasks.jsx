@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react"
 import DashboardLayout from "../../components/DashboardLayout"
 import { useNavigate } from "react-router-dom"
@@ -13,16 +12,12 @@ const ManageTasks = () => {
   const [tabs, setTabs] = useState("All")
   const [filterStatus, setFilterStatus] = useState("All")
 
-  // console.log(tabs)
-
   const navigate = useNavigate()
 
   const getAllTasks = async () => {
     try {
       const response = await axiosInstance.get("/tasks", {
-        params: {
-          status: filterStatus === "All" ? "" : filterStatus,
-        },
+        params: { status: STATUS_MAP[filterStatus] ?? "" },
       })
 
       if (response?.data) {
@@ -71,6 +66,13 @@ const ManageTasks = () => {
       console.log("Error downloading task-details report: ", error)
       toast.error("Error downloading task-details report. Please try again!")
     }
+  }
+
+  const STATUS_MAP = {
+    All: "",
+    pending: "pending",
+    "In Progress": "in-progress",
+    Completed: "completed",
   }
 
   useEffect(() => {

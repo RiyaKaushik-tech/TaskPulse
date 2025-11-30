@@ -16,8 +16,7 @@ const CustomBarChart = ({ data = [] }) => {
   const max = vals.length ? Math.max(...vals) : 0
 
   return (
-    // ensure explicit height and minHeight
-    <div className="bg-white mt-6" style={{ height: 300, minHeight: 220, minWidth: 0 }}>
+    <div style={{ height: 300, minHeight: 220, minWidth: 0 }} className="bg-white mt-6">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data || []} barCategoryGap="30%">
           <CartesianGrid stroke="none" />

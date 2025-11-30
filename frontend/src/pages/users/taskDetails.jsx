@@ -48,13 +48,21 @@ const TaskDetails = () => {
     const list = [...(task.todoCheckList || task.todoChecklist || [])];
     if (!list[index]) return;
     list[index].completed = !list[index].completed;
+
     try {
       const res = await axiosInstance.put(`/tasks/${id}/todo`, {
-        todoCheckList: list,
+        todoCheckList: list, // send correct key expected by backend
       });
-      if (res.status === 200) setTask(res.data.task);
-    } catch (e) {
-      list[index].completed = !list[index].completed; // revert
+      if (res.status === 200) {
+        // prefer server returned task shape; merge to be safe
+        const returned = res.data?.task || res.data;
+        setTask((prev) => ({ ...(prev || {}), ...(returned || {}) }));
+      }
+    } catch (err) {
+      console.error("PUT /tasks/:id/todo failed:", err);
+      // revert UI optimistic change
+      list[index].completed = !list[index].completed;
+      setTask((prev) => ({ ...(prev || {}), todoCheckList: list }));
     }
   };
 
@@ -115,7 +123,11 @@ const TaskDetails = () => {
                     <AvatarGroup
                       avatars={
                         (task.assignedTo || []).map(
-                          (u) => u.profileImageUrl || u.profileImageUrl
+                          (u) =>
+                            u?.profileImageUrl ||
+                            u?.profilePicUrl ||
+                            u?.profile_image ||
+                            ""
                         ) || []
                       }
                       maxVisible={5}
@@ -127,12 +139,12 @@ const TaskDetails = () => {
                   <label className="text-xs font-medium text-slate-500">
                     Todo Checklist
                   </label>
-                  {(task.todoCheckList || task.todoChecklist || []).map(
+                  {((task.todoCheckList || task.todoChecklist) || []).map(
                     (item, i) => (
                       <TodoCheckItem
                         key={i}
-                        text={item.text}
-                        isChecked={!!item.completed}
+                        text={item?.text || item?.task || ""}
+                        isChecked={Boolean(item?.completed)}
                         onChange={() => updateTodoChecklist(i)}
                       />
                     )

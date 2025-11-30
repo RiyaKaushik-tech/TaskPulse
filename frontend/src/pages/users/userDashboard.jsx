@@ -49,11 +49,11 @@ const UserDashboard = () => {
 
   const getDashboardData = async () => {
     try {
-      const response = await axiosInstance.get("/tasks/user-dashboard-data")
-
-      if (response.data) {
-        setDashboardData(response.data)
-        prepareChartData(response.data?.charts || null)
+      const res = await axiosInstance.get("/tasks/user-dashboard-data")
+      console.log("DASHBOARD API:", res.data); // <--- add this
+      if (res.data) {
+        setDashboardData(res.data)
+        prepareChartData(res.data?.charts || null)
       }
     } catch (error) {
       console.log("Error fetching user dashboard data: ", error)
@@ -61,8 +61,18 @@ const UserDashboard = () => {
   }
 
   useEffect(() => {
-    getDashboardData()
-
+    (async () => {
+      try {
+        const res = await axiosInstance.get("/tasks/user-dashboard-data")
+        console.log("DASHBOARD API:", res.data); // <--- add this
+        if (res.data) {
+          setDashboardData(res.data)
+          prepareChartData(res.data?.charts || null)
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    })();
     return () => {}
   }, [])
 

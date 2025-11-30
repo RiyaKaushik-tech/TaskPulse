@@ -7,27 +7,26 @@ import { FaFileLines } from "react-icons/fa6"
 import TaskCard from "../../components/TaskCard"
 import toast from "react-hot-toast"
 
-const MyTask = () => {
+const MyTasks = () => {
   
   const [allTasks, setAllTasks] = useState([])
-  const [tabs, setTabs] = useState([
-    { label: "All", count: 0 },
-    { label: "pending", count: 0 },
-    { label: "In Progress", count: 0 },
-    { label: "Completed", count: 0 },
-  ])
+  const [tabs, setTabs] = useState("All")
   const [filterStatus, setFilterStatus] = useState("All")
 
-  // console.log(tabs)
+  // ensure status labels map to backend values when filtering
+ const STATUS_MAP = {
+    All: "",
+    pending: "pending",
+    "In Progress": "in-progress",
+    Completed: "completed",
+  }
 
   const navigate = useNavigate()
 
-  const getAllTasks = async () => {
+ const getAllTasks = async () => {
     try {
       const response = await axiosInstance.get("/tasks", {
-        params: {
-          status: filterStatus === "All" ? "" : filterStatus,
-        },
+        params: { status: STATUS_MAP[filterStatus] ?? "" },
       })
 
       if (response?.data) {
@@ -36,12 +35,14 @@ const MyTask = () => {
 
       const statusSummary = response.data?.statusSummary || {}
 
-      setTabs([
+      const statusArray = [
         { label: "All", count: statusSummary.all || 0 },
         { label: "pending", count: statusSummary.pendingTasks || 0 },
         { label: "In Progress", count: statusSummary.inProgressTasks || 0 },
         { label: "Completed", count: statusSummary.completedTasks || 0 },
-      ])
+      ]
+
+      setTabs(statusArray)
     } catch (error) {
       console.log("Error fetching tasks: ", error)
     }
@@ -54,6 +55,28 @@ const MyTask = () => {
     }
     navigate(`/tasks/${taskId}`);
   }
+
+  const toggleTodo = async (taskId, index) => {
+    const t = allTasks.find((x) => x._id === taskId);
+    if (!t) return;
+    const list = [...(t.todoCheckList || t.todoChecklist || [])];
+    if (!list[index]) return;
+    list[index].completed = !list[index].completed;
+
+    try {
+      const res = await axiosInstance.put(`/tasks/${taskId}/todo`, { todoCheckList: list });
+      if (res.status === 200) {
+        const returned = res.data?.task || res.data;
+        // update local tasks list
+        setAllTasks((prev) => prev.map((item) => (item._id === taskId ? { ...(item || {}), ...(returned || {}) } : item)));
+      }
+    } catch (err) {
+      console.error("toggleTodo error:", err);
+      // revert local change
+      list[index].completed = !list[index].completed;
+      setAllTasks((prev) => prev.map((item) => (item._id === taskId ? { ...(item || {}), todoCheckList: list } : item)));
+    }
+  };
 
   useEffect(() => {
     getAllTasks(filterStatus)
@@ -72,11 +95,11 @@ const MyTask = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-            <TaskStatusTabs
-              tabs={tabs}
-              activeTab={filterStatus}
-              setActiveTab={setFilterStatus}
-            />
+           <TaskStatusTabs
+                tabs={tabs}
+                activeTab={filterStatus}
+                setActiveTab={setFilterStatus}
+              />
           </div>
         </div>
 
@@ -97,6 +120,7 @@ const MyTask = () => {
                 completedTodoCount={item.completedTodoCount || 0}
                 todoCheckList={item.todoCheckList || []} // match backend field name
                 onClick={() => handleClick(item._id)}
+                onToggleTodo={(taskId, index) => toggleTodo(taskId, index)}
               />
             ))
           ) : (
@@ -112,4 +136,4 @@ const MyTask = () => {
   )
 }
 
-export default MyTask
+export default MyTasks

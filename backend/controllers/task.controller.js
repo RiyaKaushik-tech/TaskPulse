@@ -424,44 +424,10 @@ export const getUserDashboardData = async (req, res, next) => {
 
     return res.status(200).json({
       statics: { totalCount, pendingTask, completedTask, overDueTask },
-      charts: { taskDistribution, taskPriorityLevel }, // unified key
+      charts: { taskDistribution, taskPriorityLevel },
       recentTasks,
     });
   } catch (error) {
     next(error);
   }
-};
-
-const prepareChartData = (data) => {
-  const charts = data || {};
-  const taskDistribution = charts.taskDistribution || {};
-  const taskpriorityLevels = charts.taskpriorityLevel || {};
-
-  // console.log("charts raw:", charts); // debug
-
-  // Pie data (normalize various possible keys)
-  const pending = taskDistribution.pending || taskDistribution["pending"] || 0;
-  const inProgress =
-    taskDistribution["in-progress"] ||
-    taskDistribution.InProgress ||
-    taskDistribution.inProgress ||
-    0;
-  const completed =
-    taskDistribution.completed || taskDistribution.Completed || 0;
-
-  const taskDistributionData = [
-    { status: "pending", count: pending },
-    { status: "In Progress", count: inProgress },
-    { status: "Completed", count: completed },
-  ];
-  setPieChartData(taskDistributionData);
-
-  // Bar data: ensure keys low/medium/high exist and counts are numbers
-  const priorityLevelData = ["low", "medium", "high"].map((p) => ({
-    priority: p,
-    count: Number(taskpriorityLevels[p] ?? taskpriorityLevels[p.toLowerCase()] ?? 0),
-  }));
-
-  // console.log("bar data:", priorityLevelData); // debug
-  setBarChartData(priorityLevelData);
 };
