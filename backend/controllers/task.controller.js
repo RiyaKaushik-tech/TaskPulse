@@ -80,13 +80,13 @@ export const getTask = async (req, res, next) => {
     if (req.user.role === "admin") {
       tasks = await Task.find(filter).populate(
         "assignedTo",
-        "name email profilePicUrl"
+        "name email profileImageUrl"
       );
     } else {
       tasks = await Task.find({
         ...filter,
         assignedTo: req.user.id,
-      }).populate("assignedTo", "name email profilePicUrl");
+      }).populate("assignedTo", "name email profileImageUrl");
     }
 
     tasks = await Promise.all(
@@ -144,7 +144,7 @@ export const getTaskById = async (req, res, next) => {
 
     const task = await Task.findById(id).populate(
       "assignedTo",
-      "name email profilePicUrl"
+      "name email profileImageUrl"
     );
     if (!task) return next(ErrorHandler(404, "Task not found"));
 
@@ -293,7 +293,7 @@ export const updateTodoChecklist = async (req, res, next) => {
     const saved = await task.save();
     const populated = await Task.findById(saved._id).populate(
       "assignedTo",
-      "name email profileImageUrl profilePicUrl"
+      "name email profileImageUrl profileImageUrl"
     );
 
     return res

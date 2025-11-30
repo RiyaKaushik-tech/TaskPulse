@@ -7,7 +7,7 @@ const userSchema = new Schema({
 
     password: { type: String, required: true },
 
-    profilePicUrl: {
+    profileImageUrl: {
         type: String,
         default:
             "https://www.shutterstock.com/image-vector/user-profile-icon-vector-avatar-600nw-2558760599.jpg",

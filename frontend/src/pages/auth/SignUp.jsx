@@ -4,9 +4,9 @@ import { FaEyeSlash, FaPeopleGroup } from "react-icons/fa6"
 import { FaEye } from "react-icons/fa"
 import { Link, useNavigate } from "react-router-dom"
 import { validateEmail } from "../../utils/helper"
-import ProfilePicSelection from "../../components/ProfilePicSelection"
 import axiosInstance from "../../utils/axiosInstance"
 import uploadImage from "../../utils/uploadImage"
+import ProfileImageSelection from "../../components/ProfilePicSelection"
 
 const SignUp = () => {
   const navigate = useNavigate()
@@ -16,45 +16,38 @@ const SignUp = () => {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
-  const [profilePic, setProfilePic] = useState(null)
+  const [profileImage, setProfileImage] = useState(null)
   const [adminInviteToken, setAdminInviteToken] = useState("")
   const [showAdminInviteToken, setShowAdminInviteToken] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     let profileImageUrl = ""
 
-    if (!fullName) {
-      setError("Please enter the name")
-      return
-    }
-
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address")
-      return
-    }
-
-    if (!password) {
-      setError("Please enter the password")
-      return
-    }
-
-    setError(null)
-
-    // SignUp API call
-    try {
-      // Upload profile picture if present
-      if (profilePic) {
-        const imageUploadRes = await uploadImage(profilePic)
-        profileImageUrl = imageUploadRes.imageUrl || ""
+    if (profileImage) {
+      try {
+        const imageUploadRes = await uploadImage(profileImage)
+        // support multiple shapes returned by upload util / 3rd party
+        profileImageUrl =
+          imageUploadRes?.imageURL ||
+          imageUploadRes?.imageUrl ||
+          imageUploadRes?.url ||
+          imageUploadRes?.secure_url ||
+          imageUploadRes?.data?.url ||
+          ""
+        console.log("uploadImage result:", imageUploadRes, "used:", profileImageUrl)
+      } catch (uploadErr) {
+        console.error("Image upload failed:", uploadErr)
+        profileImageUrl = ""
       }
+    }
 
+    try {
       const response = await axiosInstance.post("/auth/signUp", {
         name: fullName,
         email,
         password,
-        profileImageUrl,
+        profileImageUrl, // send normalized key
         adminJoinCode: adminInviteToken,
       })
 
@@ -97,9 +90,9 @@ const SignUp = () => {
 
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              <ProfilePicSelection
-                image={profilePic}
-                setImage={setProfilePic}
+              <ProfileImageSelection
+                image={profileImage}
+                setImage={setProfileImage}
               />
 
               <div>

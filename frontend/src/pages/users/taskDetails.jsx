@@ -115,7 +115,7 @@ const TaskDetails = () => {
                     <AvatarGroup
                       avatars={
                         (task.assignedTo || []).map(
-                          (u) => u.profileImageUrl || u.profilePicUrl
+                          (u) => u.profileImageUrl || u.profileImageUrl
                         ) || []
                       }
                       maxVisible={5}

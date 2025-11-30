@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react'
 import {FaCamera} from "react-icons/fa"
 import {MdDelete} from "react-icons/md"
 
-const ProfilePicSelection = ({image, setImage}) => {
+const ProfileImageSelection = ({image, setImage}) => {
     const inputRef = useRef(null);
     const [previewUrl , setPreviewUrl] = useState(null)
 
@@ -73,4 +73,4 @@ const ProfilePicSelection = ({image, setImage}) => {
   )
 }
 
-export default ProfilePicSelection
+export default ProfileImageSelection
