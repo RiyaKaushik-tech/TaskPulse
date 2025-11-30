@@ -20,8 +20,11 @@ const Navbar = ({ activeMenu }) => {
           )}
         </button>
       </div>
-
+      
+      <div className="flex justify-items-center ">
+        <img src="/logo.png" alt="logo"  className="h-14 w-40 absolute right-4 top-1"/>
       <h2 className="text-xl font-semibold text-gray-800">Task manager</h2>
+      </div>
 
       {openSideMenu && (
         <div className="fixed inset-0 z-40 flex lg:hidden">
