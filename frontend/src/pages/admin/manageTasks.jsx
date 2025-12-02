@@ -3,6 +3,7 @@ import DashboardLayout from "../../components/DashboardLayout"
 import { useNavigate } from "react-router-dom"
 import axiosInstance from "../../utils/axiosInstance.js"
 import TaskStatusTabs from "../../components/TaskStatusTabs"
+import SearchAndFilterPanel from "../../components/SearchAndFilterPanel"
 import { FaFileLines } from "react-icons/fa6"
 import TaskCard from "../../components/TaskCard"
 import toast from "react-hot-toast"
@@ -11,14 +12,28 @@ const ManageTasks = () => {
   const [allTasks, setAllTasks] = useState([])
   const [tabs, setTabs] = useState("All")
   const [filterStatus, setFilterStatus] = useState("All")
+  const [searchTerm, setSearchTerm] = useState("")
+  const [sortBy, setSortBy] = useState("")
+  const [sortOrder, setSortOrder] = useState("asc")
+  const [tags, setTags] = useState("")
+  const [assignedToUser, setAssignedToUser] = useState("")
+  const [users, setUsers] = useState([])
 
   const navigate = useNavigate()
 
   const getAllTasks = async () => {
     try {
-      const response = await axiosInstance.get("/tasks", {
-        params: { status: STATUS_MAP[filterStatus] ?? "" },
-      })
+      const params = { status: STATUS_MAP[filterStatus] ?? "" }
+      
+      if (searchTerm) params.search = searchTerm
+      if (sortBy) {
+        params.sortBy = sortBy
+        params.sortOrder = sortOrder
+      }
+      if (tags) params.tags = tags
+      if (assignedToUser) params.assignedToUser = assignedToUser
+
+      const response = await axiosInstance.get("/tasks", { params })
 
       if (response?.data) {
         setAllTasks(response.data?.tasks?.length > 0 ? response.data.tasks : [])
@@ -75,11 +90,26 @@ const ManageTasks = () => {
     Completed: "completed",
   }
 
+  const getUsers = async () => {
+    try {
+      const response = await axiosInstance.get("/users")
+      if (response?.data?.users) {
+        setUsers(response.data.users)
+      }
+    } catch (error) {
+      console.log("Error fetching users: ", error)
+    }
+  }
+
   useEffect(() => {
-    getAllTasks(filterStatus)
+    getUsers()
+  }, [])
+
+  useEffect(() => {
+    getAllTasks()
 
     return () => {}
-  }, [filterStatus])
+  }, [filterStatus, searchTerm, sortBy, sortOrder, tags, assignedToUser])
 
   return (
     <DashboardLayout activeMenu={"Manage Task"}>
@@ -118,6 +148,21 @@ const ManageTasks = () => {
             </div>
           )}
         </div>
+
+        <SearchAndFilterPanel
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          sortOrder={sortOrder}
+          onSortOrderChange={setSortOrder}
+          tags={tags}
+          onTagsChange={setTags}
+          assignedToUser={assignedToUser}
+          onAssignedToUserChange={setAssignedToUser}
+          users={users}
+          showUserFilter={true}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           {allTasks?.map((item, index) => (
