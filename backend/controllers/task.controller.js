@@ -14,6 +14,7 @@ export const createTask = async (req, res, next) => {
       attachment,            // legacy single
       todoCheckList,
       todoChecklist,         // wrong key from frontend
+      tags = [],
     } = req.body || {};
 
     if (!req.user?.id) return next(ErrorHandler(401, "Unauthorized"));
@@ -51,6 +52,7 @@ export const createTask = async (req, res, next) => {
       assignedTo: assignees,
       attachments: Array.isArray(attachments) ? attachments : attachment ? [attachment] : [],
       todoCheckList: normalizedTodo,
+      tags: Array.isArray(tags) ? tags : [],
       createdBy: req.user.id,
       status: "pending",
       progress: 0,
@@ -65,11 +67,29 @@ export const createTask = async (req, res, next) => {
 
 export const getTask = async (req, res, next) => {
   try {
-    let { status } = req.query;
+    let { status, search, sortBy, sortOrder, assignedToUser, tags } = req.query;
 
     let filter = {};
     if (status) {
       filter.status = status;
+    }
+
+    // Search by title (case-insensitive)
+    if (search) {
+      filter.title = { $regex: search, $options: 'i' };
+    }
+
+    // Filter by tags
+    if (tags) {
+      const tagArray = Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim());
+      if (tagArray.length > 0) {
+        filter.tags = { $in: tagArray };
+      }
+    }
+
+    // Filter by assignedTo user (only for admin)
+    if (assignedToUser && mongoose.Types.ObjectId.isValid(assignedToUser)) {
+      filter.assignedTo = new mongoose.Types.ObjectId(assignedToUser);
     }
 
     if (!req.user || !req.user.id)
@@ -87,6 +107,20 @@ export const getTask = async (req, res, next) => {
         ...filter,
         assignedTo: req.user.id,
       }).populate("assignedTo", "name email profileImageUrl");
+    }
+
+    // Apply sorting
+    if (sortBy) {
+      const order = sortOrder === 'desc' ? -1 : 1;
+      if (sortBy === 'createdAt' || sortBy === 'assignedDate') {
+        tasks.sort((a, b) => (new Date(a.createdAt) - new Date(b.createdAt)) * order);
+      } else if (sortBy === 'dueDate' || sortBy === 'deadline') {
+        tasks.sort((a, b) => {
+          const dateA = a.dueDate ? new Date(a.dueDate) : new Date('9999-12-31');
+          const dateB = b.dueDate ? new Date(b.dueDate) : new Date('9999-12-31');
+          return (dateA - dateB) * order;
+        });
+      }
     }
 
     tasks = await Promise.all(
@@ -181,6 +215,7 @@ export const updateTask = async (req, res, next) => {
     task.description = req.body.description ?? task.description;
     task.priority = req.body.priority ?? task.priority;
     task.dueDate = req.body.dueDate ?? task.dueDate;
+    task.tags = req.body.tags ?? task.tags;
 
     // If client provided todoCheckList, sanitize and set it.
     if (req.body.todoCheckList) {
