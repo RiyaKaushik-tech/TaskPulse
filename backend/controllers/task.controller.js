@@ -14,6 +14,7 @@ export const createTask = async (req, res, next) => {
       attachment,            // legacy single
       todoCheckList,
       todoChecklist,         // wrong key from frontend
+      tags = [],
     } = req.body || {};
 
     if (!req.user?.id) return next(ErrorHandler(401, "Unauthorized"));
@@ -51,6 +52,7 @@ export const createTask = async (req, res, next) => {
       assignedTo: assignees,
       attachments: Array.isArray(attachments) ? attachments : attachment ? [attachment] : [],
       todoCheckList: normalizedTodo,
+      tags: Array.isArray(tags) ? tags : [],
       createdBy: req.user.id,
       status: "pending",
       progress: 0,
@@ -65,29 +67,68 @@ export const createTask = async (req, res, next) => {
 
 export const getTask = async (req, res, next) => {
   try {
-    let { status } = req.query;
+    let { status, search, sortBy, sortOrder, assignedToUser, tags } = req.query;
 
     let filter = {};
     if (status) {
       filter.status = status;
     }
 
+    // Search by title (case-insensitive)
+    if (search) {
+      // Escape special regex characters to prevent ReDoS attacks
+      const escapedSearch = String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.title = { $regex: escapedSearch, $options: 'i' };
+    }
+
+    // Filter by tags
+    if (tags) {
+      let tagArray = [];
+      if (Array.isArray(tags)) {
+        tagArray = tags;
+      } else if (typeof tags === 'string') {
+        tagArray = tags.split(',').map(t => t.trim());
+      } else {
+        tagArray = [String(tags)];
+      }
+      if (tagArray.length > 0 && tagArray[0] !== '') {
+        filter.tags = { $in: tagArray };
+      }
+    }
+
+    // Filter by assignedTo user (only for admin)
+    if (assignedToUser && req.user.role === "admin" && mongoose.Types.ObjectId.isValid(assignedToUser)) {
+      filter.assignedTo = new mongoose.Types.ObjectId(assignedToUser);
+    }
+
     if (!req.user || !req.user.id)
       return next(ErrorHandler(401, "Unauthorized"));
 
-    let tasks;
-
+    let query;
+    
     if (req.user.role === "admin") {
-      tasks = await Task.find(filter).populate(
+      query = Task.find(filter).populate(
         "assignedTo",
         "name email profileImageUrl"
       );
     } else {
-      tasks = await Task.find({
+      query = Task.find({
         ...filter,
         assignedTo: req.user.id,
       }).populate("assignedTo", "name email profileImageUrl");
     }
+
+    // Apply sorting at database level
+    if (sortBy) {
+      const order = sortOrder === 'desc' ? -1 : 1;
+      if (sortBy === 'createdAt' || sortBy === 'assignedDate') {
+        query = query.sort({ createdAt: order });
+      } else if (sortBy === 'dueDate' || sortBy === 'deadline') {
+        query = query.sort({ dueDate: order });
+      }
+    }
+
+    let tasks = await query;
 
     tasks = await Promise.all(
       tasks.map(async (task) => {
@@ -181,6 +222,7 @@ export const updateTask = async (req, res, next) => {
     task.description = req.body.description ?? task.description;
     task.priority = req.body.priority ?? task.priority;
     task.dueDate = req.body.dueDate ?? task.dueDate;
+    task.tags = req.body.tags ?? task.tags;
 
     // If client provided todoCheckList, sanitize and set it.
     if (req.body.todoCheckList) {

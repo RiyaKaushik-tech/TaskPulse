@@ -3,6 +3,7 @@ import DashboardLayout from "../../components/DashboardLayout"
 import { useNavigate } from "react-router-dom"
 import axiosInstance from "../../utils/axiosInstance"
 import TaskStatusTabs from "../../components/TaskStatusTabs"
+import SearchAndFilterPanel from "../../components/SearchAndFilterPanel"
 import { FaFileLines } from "react-icons/fa6"
 import TaskCard from "../../components/TaskCard"
 import toast from "react-hot-toast"
@@ -12,6 +13,10 @@ const MyTasks = () => {
   const [allTasks, setAllTasks] = useState([])
   const [tabs, setTabs] = useState("All")
   const [filterStatus, setFilterStatus] = useState("All")
+  const [searchTerm, setSearchTerm] = useState("")
+  const [sortBy, setSortBy] = useState("")
+  const [sortOrder, setSortOrder] = useState("asc")
+  const [tags, setTags] = useState("")
 
   // ensure status labels map to backend values when filtering
  const STATUS_MAP = {
@@ -25,9 +30,16 @@ const MyTasks = () => {
 
  const getAllTasks = async () => {
     try {
-      const response = await axiosInstance.get("/tasks", {
-        params: { status: STATUS_MAP[filterStatus] ?? "" },
-      })
+      const params = { status: STATUS_MAP[filterStatus] ?? "" }
+      
+      if (searchTerm) params.search = searchTerm
+      if (sortBy) {
+        params.sortBy = sortBy
+        params.sortOrder = sortOrder
+      }
+      if (tags) params.tags = tags
+
+      const response = await axiosInstance.get("/tasks", { params })
 
       if (response?.data) {
         setAllTasks(response.data?.tasks?.length > 0 ? response.data.tasks : [])
@@ -79,10 +91,10 @@ const MyTasks = () => {
   };
 
   useEffect(() => {
-    getAllTasks(filterStatus)
+    getAllTasks()
 
     return () => {}
-  }, [filterStatus])
+  }, [filterStatus, searchTerm, sortBy, sortOrder, tags])
 
   return (
     <DashboardLayout activeMenu={"My Tasks"}>
@@ -102,6 +114,18 @@ const MyTasks = () => {
               />
           </div>
         </div>
+
+        <SearchAndFilterPanel
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          sortOrder={sortOrder}
+          onSortOrderChange={setSortOrder}
+          tags={tags}
+          onTagsChange={setTags}
+          showUserFilter={false}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           {allTasks?.length > 0 ? (

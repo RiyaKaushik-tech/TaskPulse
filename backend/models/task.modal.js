@@ -29,6 +29,8 @@ const TaskSchema = new Schema(
 
     attachments: [{ type: String }],
 
+    tags: [{ type: String }],
+
     todoCheckList: [todoSchema],
 
     progress: { type: Number, default: 0 },
