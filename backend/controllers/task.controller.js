@@ -81,8 +81,8 @@ export const getTask = async (req, res, next) => {
 
     // Filter by tags
     if (tags) {
-      const tagArray = Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim());
-      if (tagArray.length > 0) {
+      const tagArray = Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim());
+      if (tagArray.length > 0 && tagArray[0] !== '') {
         filter.tags = { $in: tagArray };
       }
     }
@@ -95,33 +95,31 @@ export const getTask = async (req, res, next) => {
     if (!req.user || !req.user.id)
       return next(ErrorHandler(401, "Unauthorized"));
 
-    let tasks;
-
+    let query;
+    
     if (req.user.role === "admin") {
-      tasks = await Task.find(filter).populate(
+      query = Task.find(filter).populate(
         "assignedTo",
         "name email profileImageUrl"
       );
     } else {
-      tasks = await Task.find({
+      query = Task.find({
         ...filter,
         assignedTo: req.user.id,
       }).populate("assignedTo", "name email profileImageUrl");
     }
 
-    // Apply sorting
+    // Apply sorting at database level
     if (sortBy) {
       const order = sortOrder === 'desc' ? -1 : 1;
       if (sortBy === 'createdAt' || sortBy === 'assignedDate') {
-        tasks.sort((a, b) => (new Date(a.createdAt) - new Date(b.createdAt)) * order);
+        query = query.sort({ createdAt: order });
       } else if (sortBy === 'dueDate' || sortBy === 'deadline') {
-        tasks.sort((a, b) => {
-          const dateA = a.dueDate ? new Date(a.dueDate) : new Date('9999-12-31');
-          const dateB = b.dueDate ? new Date(b.dueDate) : new Date('9999-12-31');
-          return (dateA - dateB) * order;
-        });
+        query = query.sort({ dueDate: order });
       }
     }
+
+    let tasks = await query;
 
     tasks = await Promise.all(
       tasks.map(async (task) => {

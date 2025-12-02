@@ -64,10 +64,17 @@ const SearchAndFilterPanel = ({
             onChange={(e) => onSortOrderChange(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
             disabled={!sortBy}
+            aria-label="Sort order"
+            aria-describedby={!sortBy ? "sort-order-help" : undefined}
           >
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
           </select>
+          {!sortBy && (
+            <p id="sort-order-help" className="text-xs text-gray-500 mt-1">
+              Select a sort field first
+            </p>
+          )}
         </div>
 
         {/* Filter by tags */}
