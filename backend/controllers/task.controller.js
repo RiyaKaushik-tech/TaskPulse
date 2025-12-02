@@ -76,19 +76,28 @@ export const getTask = async (req, res, next) => {
 
     // Search by title (case-insensitive)
     if (search) {
-      filter.title = { $regex: search, $options: 'i' };
+      // Escape special regex characters to prevent ReDoS attacks
+      const escapedSearch = String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.title = { $regex: escapedSearch, $options: 'i' };
     }
 
     // Filter by tags
     if (tags) {
-      const tagArray = Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim());
+      let tagArray = [];
+      if (Array.isArray(tags)) {
+        tagArray = tags;
+      } else if (typeof tags === 'string') {
+        tagArray = tags.split(',').map(t => t.trim());
+      } else {
+        tagArray = [String(tags)];
+      }
       if (tagArray.length > 0 && tagArray[0] !== '') {
         filter.tags = { $in: tagArray };
       }
     }
 
     // Filter by assignedTo user (only for admin)
-    if (assignedToUser && mongoose.Types.ObjectId.isValid(assignedToUser)) {
+    if (assignedToUser && req.user.role === "admin" && mongoose.Types.ObjectId.isValid(assignedToUser)) {
       filter.assignedTo = new mongoose.Types.ObjectId(assignedToUser);
     }
 

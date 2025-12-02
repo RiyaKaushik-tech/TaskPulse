@@ -98,6 +98,7 @@ const ManageTasks = () => {
       }
     } catch (error) {
       console.log("Error fetching users: ", error)
+      toast.error("Failed to load user list")
     }
   }
 
