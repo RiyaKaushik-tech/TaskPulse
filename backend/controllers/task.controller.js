@@ -2,7 +2,47 @@ import { ErrorHandler } from "../utils/error.js";
 import Task from "../models/task.modal.js";
 import mongoose from "mongoose";
 
+// Utility to robustly accept attachments in several shapes (array, JSON-string, util.inspect string)
+const normalizeAttachmentsInput = (input) => {
+  if (!input) return [];
+  if (Array.isArray(input)) return input;
+  if (typeof input === "string") {
+    // try native JSON first
+    try {
+      const parsed = JSON.parse(input);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+      // attempt to repair common non-JSON inspector output:
+      try {
+        const repaired = input
+          .replace(/(['"])?([a-zA-Z0-9_]+)\1\s*:/g, '"$2":') // quote keys
+          .replace(/'([^']*)'/g, '"$1"'); // single -> double quotes
+        const parsed2 = JSON.parse(repaired);
+        if (Array.isArray(parsed2)) return parsed2;
+      } catch (e2) {
+        // fallback: extract URLs if present
+        try {
+          const urls = Array.from(input.matchAll(/https?:\/\/[^\s'"]+/g)).map((m) => m[0]);
+          if (urls.length) return urls;
+        } catch (ignore) {}
+      }
+    }
+  }
+  return [];
+};
+
+// Helper to map mixed items (string or object) -> url/path string
+const mapAttachmentToString = (item) => {
+  if (!item) return "";
+  if (typeof item === "string") return item;
+  if (typeof item === "object") {
+    return item.url || item.path || item.originalname || item.originalName || "";
+  }
+  return "";
+};
+
 export const createTask = async (req, res, next) => {
+
   try {
     const {
       title,
@@ -10,20 +50,31 @@ export const createTask = async (req, res, next) => {
       priority,
       dueDate,
       assignedTo = [],
-      attachments = [],
-      attachment,            // legacy single
+      attachment,
       todoCheckList,
-      todoChecklist,         // wrong key from frontend
+      todoChecklist,
       tags = [],
     } = req.body || {};
 
     if (!req.user?.id) return next(ErrorHandler(401, "Unauthorized"));
     if (!title) return next(ErrorHandler(400, "Title is required"));
 
+    // Normalize attachments: accept array-of-strings, array-of-objects, or various string shapes
+    let normalizedAttachmentsRaw = [];
+    if (req.body.attachments !== undefined) {
+      normalizedAttachmentsRaw = normalizeAttachmentsInput(req.body.attachments);
+    } else if (attachment) {
+      normalizedAttachmentsRaw = [attachment];
+    }
+
+    const normalizedAttachments = normalizedAttachmentsRaw
+      .map(mapAttachmentToString)
+      .filter(Boolean);
+
     if (!Array.isArray(assignedTo))
       return next(ErrorHandler(400, "assignedTo must be an array"));
 
-    const assignees = assignedTo.map(id =>
+    const assignees = assignedTo.map((id) =>
       mongoose.Types.ObjectId.isValid(String(id))
         ? new mongoose.Types.ObjectId(String(id))
         : id
@@ -36,11 +87,11 @@ export const createTask = async (req, res, next) => {
       : [];
 
     const normalizedTodo = rawList
-      .map(item => ({
+      .map((item) => ({
         text: String(item?.text ?? item?.task ?? "").trim(),
         completed: !!item?.completed,
       }))
-      .filter(i => i.text.length > 0);
+      .filter((i) => i.text.length > 0);
 
     const normPriority = (priority || "medium").toLowerCase();
 
@@ -50,7 +101,7 @@ export const createTask = async (req, res, next) => {
       priority: normPriority,
       dueDate: dueDate ? new Date(dueDate) : undefined,
       assignedTo: assignees,
-      attachments: Array.isArray(attachments) ? attachments : attachment ? [attachment] : [],
+      attachments: normalizedAttachments,
       todoCheckList: normalizedTodo,
       tags: Array.isArray(tags) ? tags : [],
       createdBy: req.user.id,
@@ -77,8 +128,11 @@ export const getTask = async (req, res, next) => {
     // Search by title (case-insensitive)
     if (search) {
       // Escape special regex characters to prevent ReDoS attacks
-      const escapedSearch = String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      filter.title = { $regex: escapedSearch, $options: 'i' };
+      const escapedSearch = String(search).replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
+      filter.title = { $regex: escapedSearch, $options: "i" };
     }
 
     // Filter by tags
@@ -86,18 +140,22 @@ export const getTask = async (req, res, next) => {
       let tagArray = [];
       if (Array.isArray(tags)) {
         tagArray = tags;
-      } else if (typeof tags === 'string') {
-        tagArray = tags.split(',').map(t => t.trim());
+      } else if (typeof tags === "string") {
+        tagArray = tags.split(",").map((t) => t.trim());
       } else {
         tagArray = [String(tags)];
       }
-      if (tagArray.length > 0 && tagArray[0] !== '') {
+      if (tagArray.length > 0 && tagArray[0] !== "") {
         filter.tags = { $in: tagArray };
       }
     }
 
     // Filter by assignedTo user (only for admin)
-    if (assignedToUser && req.user.role === "admin" && mongoose.Types.ObjectId.isValid(assignedToUser)) {
+    if (
+      assignedToUser &&
+      req.user.role === "admin" &&
+      mongoose.Types.ObjectId.isValid(assignedToUser)
+    ) {
       filter.assignedTo = new mongoose.Types.ObjectId(assignedToUser);
     }
 
@@ -105,7 +163,7 @@ export const getTask = async (req, res, next) => {
       return next(ErrorHandler(401, "Unauthorized"));
 
     let query;
-    
+
     if (req.user.role === "admin") {
       query = Task.find(filter).populate(
         "assignedTo",
@@ -120,10 +178,10 @@ export const getTask = async (req, res, next) => {
 
     // Apply sorting at database level
     if (sortBy) {
-      const order = sortOrder === 'desc' ? -1 : 1;
-      if (sortBy === 'createdAt' || sortBy === 'assignedDate') {
+      const order = sortOrder === "desc" ? -1 : 1;
+      if (sortBy === "createdAt" || sortBy === "assignedDate") {
         query = query.sort({ createdAt: order });
-      } else if (sortBy === 'dueDate' || sortBy === 'deadline') {
+      } else if (sortBy === "dueDate" || sortBy === "deadline") {
         query = query.sort({ dueDate: order });
       }
     }
@@ -232,7 +290,12 @@ export const updateTask = async (req, res, next) => {
       task.todoCheckList = sanitizeTodoList(task.todoCheckList);
     }
 
-    task.attachments = req.body.attachment ?? task.attachments;
+    // Normalize attachments on update as well (accept attachments or attachment)
+    if (req.body.attachments !== undefined || req.body.attachment !== undefined) {
+      const incoming = req.body.attachments !== undefined ? req.body.attachments : req.body.attachment;
+      const raw = normalizeAttachmentsInput(incoming);
+      task.attachments = raw.map(mapAttachmentToString).filter(Boolean);
+    }
 
     if (req.body.assignedTo) {
       if (!Array.isArray(req.body.assignedTo)) {
@@ -305,7 +368,7 @@ export const updateTodoChecklist = async (req, res, next) => {
 
     // allow if assigned OR admin
     const isAssigned = (task.assignedTo || []).some(
-      u => String(u) === String(req.user.id)
+      (u) => String(u) === String(req.user.id)
     );
     if (!isAssigned && req.user.role !== "admin")
       return next(ErrorHandler(403, "Not allowed"));
@@ -313,17 +376,17 @@ export const updateTodoChecklist = async (req, res, next) => {
     const incoming = req.body?.todoCheckList || req.body?.todoChecklist;
     const sanitized = Array.isArray(incoming)
       ? incoming
-          .map(item => ({
+          .map((item) => ({
             text: String(item?.text ?? item?.task ?? "").trim(),
             completed: !!item?.completed,
           }))
-          .filter(i => i.text.length > 0)
+          .filter((i) => i.text.length > 0)
       : task.todoCheckList || [];
 
     task.todoCheckList = sanitized;
 
     const total = task.todoCheckList.length;
-    const done = task.todoCheckList.filter(i => i.completed).length;
+    const done = task.todoCheckList.filter((i) => i.completed).length;
     task.progress = total > 0 ? Math.round((done / total) * 100) : 0;
     task.status =
       task.progress === 100
@@ -425,8 +488,14 @@ export const getUserDashboardData = async (req, res, next) => {
     const userObjId = new mongoose.Types.ObjectId(userId);
 
     const totalCount = await Task.countDocuments({ assignedTo: userObjId });
-    const pendingTask = await Task.countDocuments({ assignedTo: userObjId, status: "pending" });
-    const completedTask = await Task.countDocuments({ assignedTo: userObjId, status: "completed" });
+    const pendingTask = await Task.countDocuments({
+      assignedTo: userObjId,
+      status: "pending",
+    });
+    const completedTask = await Task.countDocuments({
+      assignedTo: userObjId,
+      status: "completed",
+    });
     const overDueTask = await Task.countDocuments({
       assignedTo: userObjId,
       status: { $ne: "completed" },
@@ -442,7 +511,8 @@ export const getUserDashboardData = async (req, res, next) => {
 
     const taskDistribution = tasksStatus.reduce((acc, status) => {
       const formattedKey = status.replace(/\s/g, "");
-      acc[formattedKey] = taskDistributionRaw.find((item) => item._id === status)?.count || 0;
+      acc[formattedKey] =
+        taskDistributionRaw.find((item) => item._id === status)?.count || 0;
       return acc;
     }, {});
     taskDistribution["All"] = totalCount;
@@ -455,7 +525,8 @@ export const getUserDashboardData = async (req, res, next) => {
     ]);
 
     const taskPriorityLevel = taskPriorities.reduce((acc, priority) => {
-      acc[priority] = taskPriorityLevelRaw.find((item) => item._id === priority)?.count || 0;
+      acc[priority] =
+        taskPriorityLevelRaw.find((item) => item._id === priority)?.count || 0;
       return acc;
     }, {});
 

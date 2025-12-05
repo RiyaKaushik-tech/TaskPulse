@@ -90,17 +90,50 @@ const ManageTasks = () => {
     Completed: "completed",
   }
 
+  // replace existing getUsers() with this robust version
   const getUsers = async () => {
     try {
-      const response = await axiosInstance.get("/users")
-      if (response?.data?.users) {
-        setUsers(response.data.users)
+      // try a few likely endpoints (axiosInstance already prefixes /api)
+      const candidates = [
+        "/users/get-users",
+        "/users",
+        "/users/list",
+        "/users/all",
+      ];
+
+      let res = null;
+      for (const ep of candidates) {
+        try {
+          res = await axiosInstance.get(ep);
+          if (res && (res.status === 200 || res.status === 201)) break;
+        } catch (e) {
+          // ignore and try next candidate
+        }
       }
-    } catch (error) {
-      console.log("Error fetching users: ", error)
-      toast.error("Failed to load user list")
+
+      if (!res) {
+        throw new Error(
+          `No users endpoint responded. Tried: ${candidates.join(", ")}`
+        );
+      }
+
+      // support multiple response shapes
+      const payload = res.data || {};
+      const users =
+        Array.isArray(payload.users) && payload.users.length
+          ? payload.users
+          : Array.isArray(payload.data) && payload.data.length
+          ? payload.data
+          : Array.isArray(payload)
+          ? payload
+          : [];
+
+      setUsers(Array.isArray(users) ? users : []);
+    } catch (err) {
+      console.error("Error fetching users:", err, err?.response?.data);
+      setUsers([]);
     }
-  }
+  };
 
   useEffect(() => {
     getUsers()

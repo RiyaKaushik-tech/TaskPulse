@@ -13,6 +13,8 @@ import moment from "moment"
 import toast from "react-hot-toast"
 import Modal from "../../components/Modal"
 import DeleteAlert from "../../components/DeleteAlert"
+import FileUploader from "../../components/FileUploader";
+import AddTagsInput from "../../components/AddTagsInput";
 
 const CreateTask = () => {
   const location = useLocation()
@@ -29,6 +31,7 @@ const CreateTask = () => {
     assignedTo: [],         // array of ids
     todoCheckList: [],      // array of { text, completed }
     attachments: [],
+    tags :[]
   })
 
   // when you load existing task by id, normalize fields:
@@ -39,8 +42,16 @@ const CreateTask = () => {
       priority: (apiTask?.priority ?? "low").toString().toLowerCase(),
       dueDate: apiTask?.dueDate ? new Date(apiTask.dueDate) : null,
       assignedTo: Array.isArray(apiTask?.assignedTo) ? apiTask.assignedTo.map(a => a._id ?? a) : [],
-      todoCheckList: Array.isArray(apiTask?.todoCheckList) ? apiTask.todoCheckList.map(i => ({ text: i.text ?? i.task ?? "", completed: !!i.completed })) : [],
+      // normalize checklist to array of { text, completed }
+      todoCheckList: Array.isArray(apiTask?.todoCheckList)
+        ? apiTask.todoCheckList.map(i => ({ text: i?.text ?? i?.task ?? "", completed: !!i?.completed }))
+        : Array.isArray(apiTask?.todoChecklist)
+        ? apiTask.todoChecklist.map(i => ({ text: i?.text ?? i?.task ?? "", completed: !!i?.completed }))
+        : [],
+      // attachments can be strings or objects; keep as-is
       attachments: Array.isArray(apiTask?.attachments) ? apiTask.attachments : [],
+      // tags
+      tags: Array.isArray(apiTask?.tags) ? apiTask.tags : [],
     })
   }
 
@@ -48,6 +59,8 @@ const CreateTask = () => {
 
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [attachments, setAttachments] = useState([]);
+  const [tags, setTags] = useState([]); // <--- added tags state
 
   const [openDeleteAlert, setOpenDeleteAlert] = useState(false)
 
@@ -68,23 +81,29 @@ const CreateTask = () => {
       assignedTo: [],
       todoCheckList: [],
       attachments: [],
+      tags:[]
     })
   }
 
   // create task
   const createTask = async () => {
     try {
+      // normalize todo list to objects expected by backend
+      const normalizedTodo = (taskData.todoCheckList || []).map((t) =>
+        typeof t === "string"
+          ? { text: t, completed: false }
+          : { text: t?.text ?? t?.task ?? "", completed: !!t?.completed }
+      );
+
       const payload = {
         title: taskData.title,
         description: taskData.description,
         priority: taskData.priority,
-        dueDate: taskData.dueDate,
+        dueDate: taskData.dueDate ? new Date(taskData.dueDate).toISOString() : null,
         assignedTo: taskData.assignedTo, // array of user ids
-        attachments: taskData.attachments, // array
-        todoCheckList: taskData.todoCheckList.map((t) => ({
-          text: t,
-          completed: false,
-        })),
+        attachments: taskData.attachments || [], // array of urls or objects
+        todoCheckList: normalizedTodo,
+        tags: taskData.tags || [],
       }
 
       const response = await axiosInstance.post("/tasks/create-task", payload)
@@ -103,20 +122,23 @@ const CreateTask = () => {
   // update task
   const updateTask = async () => {
     try {
-      const todolist = taskData.todoCheckList?.map((item) => {
-        const prevtodoCheckList = currentTask?.todoCheckList || []
-        const matchedTask = prevtodoCheckList.find((task) => task.text === item)
-
+      // build todo list preserving completed state where possible
+      const prevList = Array.isArray(currentTask?.todoCheckList) ? currentTask.todoCheckList : [];
+      const todolist = (taskData.todoCheckList || []).map((item) => {
+        const text = typeof item === "string" ? item : item?.text ?? item?.task ?? "";
+        const matched = prevList.find((t) => (t?.text ?? t?.task) === text);
         return {
-          text: item,
-          completed: matchedTask ? matchedTask.completed : false,
+          text,
+          completed: matched ? !!matched.completed : !!item?.completed || false,
         }
       })
 
       const response = await axiosInstance.put(`/tasks/${taskId}`, {
         ...taskData,
-        dueDate: new Date(taskData.dueDate).toISOString(),
+        dueDate: taskData.dueDate ? new Date(taskData.dueDate).toISOString() : null,
         todoCheckList: todolist,
+        attachments: taskData.attachments || [],
+        tags: taskData.tags || [],
       })
 
       toast.success("Task updated successfully!")
@@ -129,42 +151,63 @@ const CreateTask = () => {
   }
 
   const handleSubmit = async (e) => {
-    setError("")
+    e?.preventDefault?.();
+    if (loading) return;
 
-    alert("task created")
-    if (!taskData.title.trim()) {
-      setError("Title is required!")
-      return
+    // Basic client-side validation
+    if (!taskData.title || !String(taskData.title).trim()) {
+      toast.error("Title is required");
+      return;
     }
 
-    if (!taskData.description.trim()) {
-      setError("Description is required!")
-      return
+    setLoading(true);
+    try {
+      // Normalize assignedTo to array of ids
+      const assignedTo = (taskData.assignedTo || []).map((u) =>
+        typeof u === "string" ? u : u?._id ?? u?.id ?? u
+      ).filter(Boolean);
+
+      // Prefer explicit UI state if user interacted with uploader/tags
+      const attachmentsArr = (attachments && attachments.length) ? attachments : (taskData.attachments || []);
+      const tagsArr = (tags && tags.length) ? tags : (taskData.tags || []);
+
+      // Normalize todo checklist to objects expected by backend
+      const normalizedTodo = (taskData.todoCheckList || []).map((t) =>
+        typeof t === "string"
+          ? { text: t, completed: false }
+          : { text: t?.text ?? t?.task ?? "", completed: !!t?.completed }
+      );
+
+      const payload = {
+        title: String(taskData.title).trim(),
+        description: taskData.description ?? "",
+        priority: taskData.priority ?? "low",
+        dueDate: taskData.dueDate ? new Date(taskData.dueDate).toISOString() : null,
+        assignedTo,
+        todoCheckList: normalizedTodo,
+        attachments: attachmentsArr,
+        tags: tagsArr,
+      };
+
+      const res = taskId
+        ? await axiosInstance.put(`/tasks/${taskId}`, payload)
+        : await axiosInstance.post("/tasks/create-task", payload);
+
+      if (res?.data?.success || res?.status === 200 || res?.status === 201) {
+        toast.success(taskId ? "Task updated successfully!" : "Task created successfully!");
+        clearData();
+        if (!taskId) navigate("/admin/manageTasks");
+      } else {
+        console.warn("Unexpected response:", res);
+        toast.error(res?.data?.message || "Unexpected response from server");
+      }
+    } catch (err) {
+      console.error("Create task failed:", err, err?.response?.data);
+      toast.error(err?.response?.data?.message || err.message || "Error creating/updating task");
+    } finally {
+      setLoading(false);
     }
-
-    if (!taskData.dueDate) {
-      setError("Due date is required!")
-      return
-    }
-
-    if (taskData.assignedTo?.length === 0) {
-      setError("Task is not assigned to any member!")
-      return
-    }
-
-    if (taskData.todoCheckList?.length === 0) {
-      setError("Add atleast one todo task!")
-      return
-    }
-
-    if (taskId) {
-      updateTask()
-
-      return
-    }
-
-    createTask()
-  }
+  };
 
   // get task info by id
   const getTaskDetailsById = async () => {
@@ -195,6 +238,31 @@ const CreateTask = () => {
       console.log("Error deleting task: ", error)
     }
   }
+
+  const handleUploadAndCreate = async (e) => {
+    e.preventDefault?.();
+    try {
+      const payload = {
+        // ...existing fields you already collect (title, description, etc.)
+        title,
+        description,
+        priority,
+        dueDate,
+        assignedTo,
+        todoCheckList, // or however you collect checklist items
+        attachments: attachments, // attachments is array of urls or objects
+        tags,
+      };
+
+      // ensure attachments are URLs if backend expects strings; if you stored objects keep objects
+      const res = await axiosInstance.post("/tasks/create-task", payload);
+      if (res?.data?.success) {
+        // success handling (redirect or reset) — keep existing behavior
+      }
+    } catch (err) {
+      console.error("Create task failed:", err);
+    }
+  };
 
   useEffect(() => {
     if (taskId) {
@@ -231,7 +299,7 @@ const CreateTask = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
-              <div>
+              
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Task Title <span className="text-red-500">*</span>
                 </label>
@@ -323,17 +391,43 @@ const CreateTask = () => {
                 />
               </div>
 
-              <div className="mt-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Add Attachments
-                </label>
-
-                <AddAttachmentsInput
-                  attachments={taskData?.attachments}
-                  setAttachments={(value) =>
-                    handleValueChange("attachments", value)
-                  }
+              {/* Tags input - keep styling consistent with other fields */}
+              <div className="mb-4">
+                <label className="block text-sm text-gray-600 mb-2">Tags</label>
+                <AddTagsInput
+                  tags={tags.length ? tags : taskData.tags || []}
+                  setTags={(v) => {
+                    setTags(v);
+                    handleValueChange("tags", v);
+                  }}
                 />
+              </div>
+
+              {/* Attachments input (existing / FileUploader usage) */}
+              <div className="mb-4">
+                <label className="block text-sm text-gray-600 mb-2">Attachments</label>
+                <FileUploader
+                  onUploaded={(files) => {
+                    const parsed = (files || []).map((f) => (typeof f === "string" ? f : f));
+                    const next = [...(taskData.attachments || []), ...parsed];
+                    setAttachments(next);
+                    handleValueChange("attachments", next);
+                  }}
+                />
+                {/* optional preview of attachments kept as before */}
+                <div className="mt-2">
+                  {(taskData.attachments || []).map((f, i) => {
+                    const url = typeof f === "string" ? f : f.url || f.path || "";
+                    const name = typeof f === "string"
+                      ? (url.split("/").pop() || `file-${i+1}`)
+                      : f.originalname || String(url).split("/").pop() || `file-${i+1}`;
+                    return (
+                      <div key={i} className="text-xs text-gray-600">
+                        {name}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="flex justify-end mt-7">
@@ -345,7 +439,7 @@ const CreateTask = () => {
                   {taskId ? "UPDATE TASK" : "CREATE TASK"}
                 </button>
               </div>
-            </div>
+            {/* </div> */}
           </form>
         </div>
       </div>
