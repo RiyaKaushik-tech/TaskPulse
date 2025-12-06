@@ -1,6 +1,7 @@
 import { ErrorHandler } from "../utils/error.js";
 import Task from "../models/task.modal.js";
 import mongoose from "mongoose";
+import createEvent from "../utils/LoggerHelper.js";
 
 // Utility to robustly accept attachments in several shapes (array, JSON-string, util.inspect string)
 const normalizeAttachmentsInput = (input) => {
@@ -42,7 +43,6 @@ const mapAttachmentToString = (item) => {
 };
 
 export const createTask = async (req, res, next) => {
-
   try {
     const {
       title,
@@ -108,6 +108,28 @@ export const createTask = async (req, res, next) => {
       status: "pending",
       progress: 0,
     });
+
+    // LOG: task_created event
+    await createEvent({
+      type: "task_created",
+      actor: req.user.id,
+      targets: assignees.map(String),
+      task: String(task._id),
+      meta: { title: task.title, priority: task.priority },
+      io: req.app.locals.io,
+    });
+
+    // LOG: task_assigned event for each assignee
+    if (assignees.length) {
+      await createEvent({
+        type: "task_assigned",
+        actor: req.user.id,
+        targets: assignees.map(String),
+        task: String(task._id),
+        meta: { title: task.title },
+        io: req.app.locals.io,
+      });
+    }
 
     return res.status(201).json({ success: true, task });
   } catch (err) {
@@ -275,22 +297,23 @@ export const updateTask = async (req, res, next) => {
     const task = await Task.findById(id);
     if (!task) return next(ErrorHandler(404, "Task not found"));
 
+    const oldStatus = task.status;
+    const oldAssignees = (task.assignedTo || []).map(String);
+
     // update fields
     task.title = req.body.title ?? task.title;
     task.description = req.body.description ?? task.description;
     task.priority = req.body.priority ?? task.priority;
     task.dueDate = req.body.dueDate ?? task.dueDate;
     task.tags = req.body.tags ?? task.tags;
+    task.status = req.body.status ?? task.status;
 
-    // If client provided todoCheckList, sanitize and set it.
     if (req.body.todoCheckList) {
       task.todoCheckList = sanitizeTodoList(req.body.todoCheckList);
     } else {
-      // Always sanitize existing items to avoid validation errors from legacy data
       task.todoCheckList = sanitizeTodoList(task.todoCheckList);
     }
 
-    // Normalize attachments on update as well (accept attachments or attachment)
     if (req.body.attachments !== undefined || req.body.attachment !== undefined) {
       const incoming = req.body.attachments !== undefined ? req.body.attachments : req.body.attachment;
       const raw = normalizeAttachmentsInput(incoming);
@@ -299,14 +322,40 @@ export const updateTask = async (req, res, next) => {
 
     if (req.body.assignedTo) {
       if (!Array.isArray(req.body.assignedTo)) {
-        return next(
-          ErrorHandler(400, "Assigned to must be an array of user ids")
-        );
+        return next(ErrorHandler(400, "Assigned to must be an array of user ids"));
       }
       task.assignedTo = req.body.assignedTo;
     }
 
     const updatedTask = await task.save();
+    const newAssignees = (updatedTask.assignedTo || []).map(String);
+
+    // LOG: task_completed event (notify admin + assignees)
+    if (oldStatus !== "completed" && updatedTask.status === "completed") {
+      const admin = await User.findOne({ role: "admin" }).select("_id");
+      const targets = [...new Set([...newAssignees, admin?._id ? String(admin._id) : null].filter(Boolean))];
+      await createEvent({
+        type: "task_completed",
+        actor: req.user.id,
+        targets,
+        task: String(updatedTask._id),
+        meta: { title: updatedTask.title },
+        io: req.app.locals.io,
+      });
+    }
+
+    // LOG: task_assigned to newly added assignees
+    const newlyAdded = newAssignees.filter((u) => !oldAssignees.includes(u));
+    if (newlyAdded.length) {
+      await createEvent({
+        type: "task_assigned",
+        actor: req.user.id,
+        targets: newlyAdded,
+        task: String(updatedTask._id),
+        meta: { title: updatedTask.title },
+        io: req.app.locals.io,
+      });
+    }
 
     return res.status(200).json({ success: true, task: updatedTask });
   } catch (err) {

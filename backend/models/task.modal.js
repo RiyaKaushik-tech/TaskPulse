@@ -6,7 +6,7 @@ const todoSchema = new Schema({
   completed: { type: Boolean, default: false },
 });
 
-const TaskSchema = new Schema(
+const taskSchema = new Schema(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -34,8 +34,10 @@ const TaskSchema = new Schema(
     todoCheckList: [todoSchema],
 
     progress: { type: Number, default: 0 },
+
+    overdueNotified: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Task", TaskSchema);
+export default mongoose.model("Task", taskSchema);

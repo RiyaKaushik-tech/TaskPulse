@@ -8,12 +8,14 @@ import http from 'http';
 import { Server as IOServer } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
+import checkOverdueTasks from "./utils/checkOverdueTasks.js";
 
 import authRouter from './routes/auth.router.js';
 import taskRouter from './routes/task.router.js';
 import userRouter from './routes/user.Router.js';
 import reportRouter from './routes/reportRouter.js';
 import uploadsRouter from './routes/uploads.route.js';
+import logsRouter from "./routes/logs.router.js";
 
 const __filename__ = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename__);
@@ -57,6 +59,7 @@ app.use('/api/users', userRouter);
 app.use('/api/tasks', taskRouter);
 app.use('/api/report', reportRouter);
 app.use('/api/uploads', uploadsRouter);
+app.use('/api/logs', logsRouter);
 
 // --- create HTTP server + socket.io AFTER app configured ---
 const server = http.createServer(app);
@@ -122,4 +125,12 @@ app.use((err, req, res, next) => {
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`CORS allowed origin: ${CORS_ORIGIN}`);
+
+  // Schedule overdue task check every hour
+  setInterval(() => {
+    checkOverdueTasks(io);
+  }, 60 * 60 * 1000); // 1 hour
+
+  // Run once on startup
+  checkOverdueTasks(io);
 });

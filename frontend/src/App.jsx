@@ -14,6 +14,8 @@ import HomePage from "./pages/home.jsx"
 import NotFound from "./pages/NotFound.jsx"
 import ErrorBoundary from "./components/ErrorBoundary.jsx"
 import TaskCard from "./components/TaskCard.jsx"
+import Notifications from "./pages/users/Notifications";
+import ActivityLogs from "./pages/admin/ActivityLogs";
 
 function App() {
   return (
@@ -32,6 +34,7 @@ function App() {
         <Route path="/admin/create-task" element={<CreateTask/>} />
         <Route path="/admin/manageUsers" element={<ManageUsers/>} />
         <Route path="/admin/manageTasks" element={<ManageTasks/>} />
+  <Route path="/admin/activity-logs" element={<ActivityLogs />} />
       </Route>
 
       {/* users routes */}
@@ -40,6 +43,7 @@ function App() {
         <Route path="/users/taskDetails" element={<TaskCard />} />
         <Route path="/users/userDashboard" element={<UserDashboard/>} />
         <Route path="/tasks/:id" element={<TaskDetails />} />
+        <Route path="/users/notifications" element={<Notifications />} />
       </Route>
       </Routes>
     </ErrorBoundary>

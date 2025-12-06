@@ -1,4 +1,5 @@
-import  User from "../models/user.modals.js"
+import createEvent from "../utils/LoggerHelper.js";
+import User from "../models/user.modals.js"
 import bcryptjs from "bcryptjs"
 import { ErrorHandler } from "../utils/error.js"
 import jwt from "jsonwebtoken"
@@ -45,7 +46,28 @@ export const signUp = async (req, res, next) => {
   try {
     await newUser.save()
 
-    res.json("Signup successful")
+    // LOG: user_signup event (notify all admins)
+    const admins = await User.find({ role: "admin" }).select("_id");
+    const adminIds = admins.map((a) => String(a._id));
+    if (adminIds.length) {
+      await createEvent({
+        type: "user_signup",
+        actor: String(newUser._id),
+        targets: adminIds,
+        task: null,
+        meta: { userName: newUser.name, userEmail: newUser.email },
+        io: req.app.locals.io,
+      });
+    }
+
+    const token = jwt.sign(
+      { id: newUser._id, role: newUser.role },
+      process.env.JWT_SECRET
+    )
+
+    const { password: pass, ...rest } = newUser._doc
+
+    res.status(200).cookie("access_token", token, { httpOnly: true }).json(rest)
   } catch (error) {
     next(error.message)
   }
