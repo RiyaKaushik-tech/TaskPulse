@@ -1,13 +1,44 @@
 import mongoose from "mongoose";
 
-const EventSchema = new mongoose.Schema({
-  type: { type: String, required: true },
-  actor: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  targets: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-  task: { type: mongoose.Schema.Types.ObjectId, ref: "Task" },
-  meta: { type: mongoose.Schema.Types.Mixed },
-  readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-  createdAt: { type: Date, default: Date.now },
+const eventSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    required: true,
+    enum: [
+      "task_created",
+      "task_assigned",
+      "task_completed",
+      "user_mentioned",
+      "user_signup",
+      "task_overdue",
+    ],
+  },
+  actor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
+  targets: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  }],
+  task: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Task",
+    default: null,
+  },
+  meta: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {},
+  },
+  readBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  }],
+}, {
+  timestamps: true,
 });
 
-export default mongoose.models.Event || mongoose.model("Event", EventSchema);
+const Event = mongoose.model("Event", eventSchema);
+
+export default Event;

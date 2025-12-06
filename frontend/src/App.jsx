@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom"
 import Login from "./pages/auth/Login.jsx"
-import React from "react"
+import React, { useEffect } from "react"
 import SignUp from "./pages/auth/SignUp.jsx"
 import PrivateRoute from "./routes/privateRoute.jsx"
 import CreateTask from "./pages/admin/createTasks.jsx"
@@ -16,8 +16,17 @@ import ErrorBoundary from "./components/ErrorBoundary.jsx"
 import TaskCard from "./components/TaskCard.jsx"
 import Notifications from "./pages/users/Notifications";
 import ActivityLogs from "./pages/admin/ActivityLogs";
+import { useSelector } from "react-redux"
+import { initSocket } from "./utils/socket.js"
 
 function App() {
+   const user = useSelector((state) => state.user);
+
+  useEffect(() => {
+    if (user?.token) {
+      initSocket({ token: user.token });
+    }
+  }, [user?.token]);
   return (
    <div>
     <BrowserRouter>

@@ -1,24 +1,47 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import DashboardLayout from "../../components/DashboardLayout";
+import DeleteAlert from "../../components/DeleteAlert";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
+import { getSocket } from "../../utils/socket";
+import { toast } from "react-toastify";
 
 const Notifications = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchEvents();
+
+    const socket = getSocket();
+    if (socket) {
+      socket.on("notification:new", (data) => {
+        setEvents((prev) => [data, ...prev]);
+      });
+
+      socket.on("notification:deleted", (data) => {
+        const deletedId = String(data.id);
+        setEvents((prev) => prev.filter((e) => String(e._id) !== deletedId));
+      });
+
+      return () => {
+        socket.off("notification:new");
+        socket.off("notification:deleted");
+      };
+    }
   }, []);
 
   const fetchEvents = async () => {
+    setLoading(true);
     try {
       const res = await axiosInstance.get("/logs/user");
       setEvents(res.data?.events || []);
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
+      toast.error("Failed to fetch notifications");
     } finally {
       setLoading(false);
     }
@@ -29,11 +52,29 @@ const Notifications = () => {
       await axiosInstance.put(`/logs/${id}/read`);
       setEvents((prev) =>
         prev.map((e) =>
-          e._id === id ? { ...e, readBy: [...(e.readBy || []), "current"] } : e
+          String(e._id) === String(id) ? { ...e, readBy: [...(e.readBy || []), "current"] } : e
         )
       );
     } catch (err) {
       console.error("Failed to mark as read:", err);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    
+    try {
+      const res = await axiosInstance.delete(`/logs/${deleteId}`);
+      if (res.data?.success) {
+        const deletedId = String(deleteId);
+        setEvents((prev) => prev.filter((e) => String(e._id) !== deletedId));
+        toast.success("Notification deleted successfully");
+      }
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
+      toast.error(err?.response?.data?.message || "Failed to delete notification");
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -73,19 +114,32 @@ const Notifications = () => {
   const handleEventClick = (event) => {
     if (event.task?._id) {
       markAsRead(event._id);
-      navigate(`/users/tasks/${event.task._id}`);
+      navigate(`/tasks/${event.task._id}`);
     }
   };
 
   return (
     <DashboardLayout activeMenu="Notifications">
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Notifications</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Notifications</h1>
+          {events.length > 0 && (
+            <button
+              onClick={fetchEvents}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm"
+            >
+              Refresh
+            </button>
+          )}
+        </div>
 
         {loading && <p className="text-gray-500">Loading...</p>}
 
         {!loading && events.length === 0 && (
-          <p className="text-gray-500">No notifications yet</p>
+          <div className="text-center py-12">
+            <span className="text-6xl">🔔</span>
+            <p className="text-gray-500 mt-4">No notifications yet</p>
+          </div>
         )}
 
         <div className="space-y-3">
@@ -94,14 +148,16 @@ const Notifications = () => {
             return (
               <div
                 key={event._id}
-                onClick={() => handleEventClick(event)}
-                className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                className={`p-4 rounded-lg border transition-all ${
                   isRead ? "bg-white border-gray-200" : "bg-blue-50 border-blue-200"
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">{getEventIcon(event.type)}</span>
-                  <div className="flex-1">
+                  <div
+                    className="flex-1 cursor-pointer"
+                    onClick={() => handleEventClick(event)}
+                  >
                     <p className="text-sm font-medium text-gray-900">
                       {getEventMessage(event)}
                     </p>
@@ -109,15 +165,34 @@ const Notifications = () => {
                       {moment(event.createdAt).fromNow()}
                     </p>
                   </div>
-                  {!isRead && (
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mt-1"></span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {!isRead && (
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteId(event._id);
+                      }}
+                      className="text-red-500 hover:text-red-700 text-sm px-3 py-1 rounded hover:bg-red-50 transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
       </div>
+
+      {deleteId && (
+        <DeleteAlert
+          message="Are you sure you want to delete this notification? This action cannot be undone."
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteId(null)}
+        />
+      )}
     </DashboardLayout>
   );
 };

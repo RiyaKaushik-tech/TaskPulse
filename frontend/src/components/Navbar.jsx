@@ -1,10 +1,19 @@
-
-import React, { useState } from "react"
-import { MdClose, MdMenu } from "react-icons/md"
-import SideMenu from "./SideMenu"
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { MdClose, MdMenu } from "react-icons/md";
+import SideMenu from "./SideMenu";
+import UserNotificationBell from "./userNotifications";
+import AdminNotificationBell from "./adminNotification";
 
 const Navbar = ({ activeMenu }) => {
-  const [openSideMenu, setOpenSideMenu] = useState(false)
+  const [openSideMenu, setOpenSideMenu] = useState(false);
+  
+  // Check entire Redux state to find where user is stored
+  const entireState = useSelector((state) => state);
+  const user = useSelector((state) => state.user?.currentUser);
+  const isAdmin = user?.role === "admin";
+  
+
 
   return (
     <div className="bg-white shadow-sm sticky top-0 z-10 p-4 flex items-center justify-between">
@@ -21,9 +30,13 @@ const Navbar = ({ activeMenu }) => {
         </button>
       </div>
       
-      <div className="flex justify-items-center ">
-        <img src="/logo.png" alt="logo"  className="h-14 w-40 absolute right-4 top-1"/>
-      <h2 className="text-xl font-semibold text-gray-800">Task manager</h2>
+      <div className="flex justify-items-center">
+        <img src="/logo.png" alt="logo" className="h-14 w-40 absolute right-12 top-1"/>
+      </div>
+
+      <div className="flex items-center gap-4">
+        {console.log("Rendering bell - isAdmin:", isAdmin)}
+        {isAdmin ? <AdminNotificationBell /> : <UserNotificationBell />}
       </div>
 
       {openSideMenu && (
@@ -43,7 +56,7 @@ const Navbar = ({ activeMenu }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;
