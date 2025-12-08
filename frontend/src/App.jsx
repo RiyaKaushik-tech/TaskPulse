@@ -18,6 +18,7 @@ import Notifications from "./pages/users/Notifications";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import { useSelector } from "react-redux"
 import { initSocket } from "./utils/socket.js"
+import { Toaster } from "react-hot-toast"
 
 function App() {
    const user = useSelector((state) => state.user);
@@ -55,6 +56,7 @@ function App() {
         <Route path="/users/notifications" element={<Notifications />} />
       </Route>
       </Routes>
+      <Toaster/>
     </ErrorBoundary>
     </BrowserRouter>
    </div>

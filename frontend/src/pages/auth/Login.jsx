@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { validateEmail } from '../../utils/helper';
 import AuthLayout from '../../components/AuthLayout';
 import axiosInstance from '../../utils/axiosInstance';
+import toast from "react-hot-toast"
 
 const Login = () => {
 
@@ -26,11 +27,13 @@ const Login = () => {
 
     if (!validateEmail(email)) {
       setError("Please enter a valid email address")
+      toast.error("Please enter a valid email address")
       return
     }
 
     if (!password) {
       setError("Please enter the password")
+      toast.error("Please enter the password")
       return
     }
 
@@ -55,17 +58,22 @@ const Login = () => {
 
       if (response.data.role === "admin") {
         dispatch(signInSuccess(response.data))
+        toast.success("Admin Login successfully!")
         navigate("/admin/dashboard")
       } else {
         dispatch(signInSuccess(response.data))
+        toast.success("User Login successfully!")
         navigate("/users/userDashboard")
       }
     } catch (error) {
       if (error.response && error.response.data.message) {
         setError(error.response.data.message)
         dispatch(signInFailure(error.response.data.message))
+        toast.error(error.response.data.message)
+        toast
       } else {
         setError("Something went wrong. Please try again!")
+        toast.error("Something went wrong. Please try again!")
         dispatch(signInFailure("Something went wrong. Please try again!"))
       }
     }

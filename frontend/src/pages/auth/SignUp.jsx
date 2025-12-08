@@ -1,7 +1,8 @@
 import React, { useState } from "react"
+import toast from "react-hot-toast"
 import AuthLayout from "../../components/AuthLayout"
 import { FaEyeSlash, FaPeopleGroup } from "react-icons/fa6"
-import { FaEye } from "react-icons/fa"
+import { FaBeer, FaEye } from "react-icons/fa"
 import { Link, useNavigate } from "react-router-dom"
 import { validateEmail } from "../../utils/helper"
 import axiosInstance from "../../utils/axiosInstance"
@@ -24,6 +25,7 @@ const SignUp = () => {
     e.preventDefault()
     let profileImageUrl = ""
 
+   
     if (profileImage) {
       try {
         const imageUploadRes = await uploadImage(profileImage)
@@ -37,6 +39,7 @@ const SignUp = () => {
           ""
         console.log("uploadImage result:", imageUploadRes, "used:", profileImageUrl)
       } catch (uploadErr) {
+        toast.error("Image upload failed:", uploadErr)
         console.error("Image upload failed:", uploadErr)
         profileImageUrl = ""
       }
@@ -53,12 +56,15 @@ const SignUp = () => {
 
       if (response.data) {
         navigate("/login")
+        // toast.loading("Rendering to Login", {icon: <FaBeer size={16} color="yellow" /> , duration:3000})
       }
     } catch (error) {
       if (error.response && error.response.data.message) {
         setError(error.response.data.message)
+        toast.error(error.response.data.message)
       } else {
         setError("Something went wrong. Please try again!")
+        toast.error("Something went wrong. Please try again!")
       }
     }
   }
@@ -204,9 +210,10 @@ const SignUp = () => {
 
             <div className="mt-6 text-center text-sm">
               <p className="text-gray-600">
-                Already have an accout?{" "}
+                Already have an account?{" "}
                 <Link
                   to={"/login"}
+                  // onClick={toast.loading("render to login", {icon:<FaBeer size={24} color="gold" />,  duration:3000})}
                   className="font-medium text-blue-600 hover:text-blue-500"
                 >
                   Login
