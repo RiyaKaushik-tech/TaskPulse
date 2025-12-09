@@ -5,6 +5,7 @@ import DashboardLayout from "../../components/DashboardLayout";
 import moment from "moment";
 import AvatarGroup from "../../components/AvatarGroup";
 import { FaExternalLinkAlt } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 const TaskDetails = () => {
   const { id } = useParams();
@@ -89,6 +90,7 @@ const TaskDetails = () => {
         setTask((prev) => ({ ...(prev || {}), ...(returned || {}), todoCheckList: returnedList }));
       }
     } catch (err) {
+      toast.error(err)
       console.error("PUT /tasks/:id/todo failed:", err);
       // Revert optimistic change
       setTask((prev) => ({ ...(prev || {}), todoCheckList: currentList }));

@@ -39,7 +39,9 @@ const ManageUsers = () => {
 
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
+      toast.success("✅ Report downloaded successfully!", { id: downloadToast })
     } catch (error) {
+      toast.error("❌ Error downloading task-details report. Please try again!", { id: downloadToast })
       console.log("Error downloading user-details report: ", error)
       toast.error("Error downloading user-details report. Please try again!")
     }

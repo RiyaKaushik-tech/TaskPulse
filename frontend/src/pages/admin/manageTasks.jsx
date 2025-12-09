@@ -22,6 +22,7 @@ const ManageTasks = () => {
   const navigate = useNavigate()
 
   const getAllTasks = async () => {
+    // const loadingToast = toast.loading("📋 Loading tasks...")
     try {
       const params = { status: STATUS_MAP[filterStatus] ?? "" }
       
@@ -37,6 +38,7 @@ const ManageTasks = () => {
 
       if (response?.data) {
         setAllTasks(response.data?.tasks?.length > 0 ? response.data.tasks : [])
+        // toast.success(`✅ ${response.data?.tasks?.length || 0} tasks loaded`, { id: loadingToast })
       }
 
       const statusSummary = response.data?.statusSummary || {}
@@ -51,14 +53,17 @@ const ManageTasks = () => {
       setTabs(statusArray)
     } catch (error) {
       console.log("Error fetching tasks: ", error)
+      toast.error("❌ Error loading tasks. Please try again!", { id: loadingToast })
     }
   }
 
   const handleClick = (taskData) => {
+    toast.success("📝 Opening task details...", { duration: 1500 })
     navigate("/admin/create-task", { state: { taskId: taskData._id } })
   }
 
   const handleDownloadReport = async () => {
+    const downloadToast = toast.loading("📥 Downloading report...")
     try {
       const response = await axiosInstance.get("/report/export/task", {
         responseType: "blob",
@@ -77,9 +82,10 @@ const ManageTasks = () => {
 
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
+      toast.success("✅ Report downloaded successfully!", { id: downloadToast })
     } catch (error) {
       console.log("Error downloading task-details report: ", error)
-      toast.error("Error downloading task-details report. Please try again!")
+      toast.error("❌ Error downloading task-details report. Please try again!", { id: downloadToast })
     }
   }
 
@@ -92,6 +98,7 @@ const ManageTasks = () => {
 
   // replace existing getUsers() with this robust version
   const getUsers = async () => {
+    // const usersLoadingToast = toast.loading("👥 Loading users...")
     try {
       // try a few likely endpoints (axiosInstance already prefixes /api)
       const candidates = [
@@ -129,9 +136,11 @@ const ManageTasks = () => {
           : [];
 
       setUsers(Array.isArray(users) ? users : []);
+      // toast.success(`✅ ${us/ers.length} users loaded`, { id: usersLoadingToast })
     } catch (err) {
       console.error("Error fetching users:", err, err?.response?.data);
       setUsers([]);
+      toast.error("❌ Error loading users", { id: usersLoadingToast })
     }
   };
 
@@ -159,7 +168,7 @@ const ManageTasks = () => {
               onClick={handleDownloadReport}
               type="button"
             >
-              Download
+              📥 Download
             </button>
           </div>
 
@@ -177,7 +186,7 @@ const ManageTasks = () => {
                 type="button"
               >
                 <FaFileLines className="text-lg" />
-                <span>Download Report</span>
+                <span>📥 Download Report</span>
               </button>
             </div>
           )}

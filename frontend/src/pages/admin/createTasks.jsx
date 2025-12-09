@@ -17,6 +17,7 @@ import FileUploader from "../../components/FileUploader";
 import AddTagsInput from "../../components/AddTagsInput";
 
 const CreateTask = () => {
+  const [error,setError] = useState("")
   const location = useLocation()
   const { taskId } = location.state || {}
 
@@ -57,7 +58,7 @@ const CreateTask = () => {
 
   const [currentTask, setCurrentTask] = useState(null)
 
-  const [error, setError] = useState("")
+  // const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [attachments, setAttachments] = useState([]);
   const [tags, setTags] = useState([]); // <--- added tags state
@@ -220,6 +221,7 @@ const CreateTask = () => {
         loadTask(taskInfo)
       }
     } catch (error) {
+      toast.error("Error fetching task details: ", error)
       console.log("Error fetching task details: ", error)
     }
   }
@@ -232,10 +234,11 @@ const CreateTask = () => {
       setOpenDeleteAlert(false)
 
       toast.success("Task deleted successfully!")
-
+      
       navigate("/admin/manageTasks")
     } catch (error) {
-      console.log("Error deleting task: ", error)
+      toast.error("Error deleting task: ", error)
+      // console.log("Error deleting task: ", error)
     }
   }
 
@@ -451,7 +454,8 @@ const CreateTask = () => {
       >
         <DeleteAlert
           content="Are you sure you want to delete this task?"
-          onDelete={() => deleteTask()}
+          onConfirm={() => deleteTask()}
+          onCancel={()=>{navigate("/admin/manageTasks")}}
         />
       </Modal>
     </DashboardLayout>

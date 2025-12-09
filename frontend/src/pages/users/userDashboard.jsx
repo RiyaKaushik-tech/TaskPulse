@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom"
 import RecentTasks from "../../components/RecentTask"
 import CustomPieChart from "../../components/CustomPieChart"
 import CustomBarChart from "../../components/CustomBarGraph"
+import toast from "react-hot-toast"
 
 const COLORS = ["#FF6384", "#36A2EB", "#FFCE56"]
 
@@ -44,6 +45,17 @@ const UserDashboard = () => {
     }))
 
     // console.log("bar data:", priorityLevelData) // debug
+    toast.success("Data updated successfully",{
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      // transition: Bounce,
+    })
     setBarChartData(priorityLevelData)
   }
 
@@ -56,6 +68,7 @@ const UserDashboard = () => {
         prepareChartData(res.data?.charts || null)
       }
     } catch (error) {
+      toast.error("Error fetching user dashboard data: ", error)
       console.log("Error fetching user dashboard data: ", error)
     }
   }
@@ -71,6 +84,7 @@ const UserDashboard = () => {
         }
       } catch (err) {
         console.error(err);
+        toast.error(err)
       }
     })();
     return () => {}
