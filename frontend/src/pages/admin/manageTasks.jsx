@@ -22,7 +22,7 @@ const ManageTasks = () => {
   const navigate = useNavigate()
 
   const getAllTasks = async () => {
-    // const loadingToast = toast.loading("📋 Loading tasks...")
+    // const loadingToast = toast.loading(" Loading tasks...")
     try {
       const params = { status: STATUS_MAP[filterStatus] ?? "" }
       
@@ -38,7 +38,7 @@ const ManageTasks = () => {
 
       if (response?.data) {
         setAllTasks(response.data?.tasks?.length > 0 ? response.data.tasks : [])
-        // toast.success(`✅ ${response.data?.tasks?.length || 0} tasks loaded`, { id: loadingToast })
+        // toast.success(` ${response.data?.tasks?.length || 0} tasks loaded`, { id: loadingToast })
       }
 
       const statusSummary = response.data?.statusSummary || {}
@@ -53,7 +53,7 @@ const ManageTasks = () => {
       setTabs(statusArray)
     } catch (error) {
       console.log("Error fetching tasks: ", error)
-      toast.error("❌ Error loading tasks. Please try again!", { id: loadingToast })
+      toast.error(" Error loading tasks. Please try again!", { id: loadingToast })
     }
   }
 
@@ -82,10 +82,10 @@ const ManageTasks = () => {
 
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
-      toast.success("✅ Report downloaded successfully!", { id: downloadToast })
+      toast.success(" Report downloaded successfully!", { id: downloadToast })
     } catch (error) {
       console.log("Error downloading task-details report: ", error)
-      toast.error("❌ Error downloading task-details report. Please try again!", { id: downloadToast })
+      toast.error(" Error downloading task-details report. Please try again!", { id: downloadToast })
     }
   }
 
@@ -136,11 +136,11 @@ const ManageTasks = () => {
           : [];
 
       setUsers(Array.isArray(users) ? users : []);
-      // toast.success(`✅ ${us/ers.length} users loaded`, { id: usersLoadingToast })
+      // toast.success(` ${us/ers.length} users loaded`, { id: usersLoadingToast })
     } catch (err) {
       console.error("Error fetching users:", err, err?.response?.data);
       setUsers([]);
-      toast.error("❌ Error loading users", { id: usersLoadingToast })
+      toast.error(" Error loading users", { id: usersLoadingToast })
     }
   };
 

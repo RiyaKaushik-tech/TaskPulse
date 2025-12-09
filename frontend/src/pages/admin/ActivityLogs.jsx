@@ -5,6 +5,8 @@ import DeleteAlert from "../../components/DeleteAlert";
 import moment from "moment";
 import { getSocket } from "../../utils/socket";
 import toast from "react-hot-toast";
+import { FaBeer , FaBell, FaPlus } from "react-icons/fa";
+import { MdContentCopy } from "react-icons/md";
 
 const ActivityLogs = () => {
   const [events, setEvents] = useState([]);
@@ -67,15 +69,15 @@ const ActivityLogs = () => {
 
   const fetchEvents = async () => {
     setLoading(true);
-    const loadingToast = toast.loading("📊 Loading activity logs...");
+    const loadingToast = toast.loading(<FaBeer/>,"Loading activity logs...");
     try {
       const res = await axiosInstance.get("/logs/admin");
       const eventsData = res.data?.events || [];
       setEvents(eventsData);
-      toast.success(`✅ Loaded ${eventsData.length} logs`, { id: loadingToast, duration: 2000 });
+      // toast.success(`Loaded ${eventsData.length} logs`, { id: loadingToast, duration: 2000 });
     } catch (err) {
       console.error("Error fetching logs:", err);
-      toast.error("❌ Failed to load activity logs", { id: loadingToast });
+      toast.error(" Failed to load activity logs", { id: loadingToast });
     } finally {
       setLoading(false);
     }
@@ -95,18 +97,18 @@ const ActivityLogs = () => {
               : e
           )
         );
-        toast.success("✅ Marked as read", { id: readToast, duration: 2000 });
+        toast.success("Marked as read", { id: readToast, duration: 2000 });
       }
     } catch (error) {
       console.error("Error marking as read:", error);
-      toast.error("❌ Failed to mark as read", { id: readToast });
+      toast.error(" Failed to mark as read", { id: readToast });
     }
   }, []);
 
   const handleMarkAllAsRead = useCallback(async () => {
     const unreadEvents = filteredByStatus.filter(e => !e.isRead);
     if (unreadEvents.length === 0) {
-      toast.error("⚠️ No unread logs to mark");
+      toast.error(" No unread logs to mark");
       return;
     }
 
@@ -127,19 +129,19 @@ const ActivityLogs = () => {
           )
         );
         toast.success(
-          `✅ ${response.data.modifiedCount || unreadIds.length} log(s) marked as read`,
+          `${response.data.modifiedCount || unreadIds.length} log(s) marked as read`,
           { id: readToast, duration: 2000 }
         );
       }
     } catch (error) {
       console.error("Error marking as read:", error);
-      toast.error("❌ Failed to mark logs as read", { id: readToast });
+      toast.error(" Failed to mark logs as read", { id: readToast });
     }
   }, [events, filter, showFilter]);
 
   const handleBulkMarkAsRead = useCallback(async () => {
     if (!selectedIds.length) {
-      toast.error("⚠️ No logs selected");
+      toast.error(" No logs selected");
       return;
     }
 
@@ -160,19 +162,19 @@ const ActivityLogs = () => {
         );
         setSelectedIds([]);
         toast.success(
-          `✅ ${response.data.modifiedCount || selectedIds.length} log(s) marked as read`,
+          `${response.data.modifiedCount || selectedIds.length} log(s) marked as read`,
           { id: readToast, duration: 2000 }
         );
       }
     } catch (error) {
       console.error("Error marking as read:", error);
-      toast.error("❌ Failed to mark logs as read", { id: readToast });
+      toast.error(" Failed to mark logs as read", { id: readToast });
     }
   }, [selectedIds]);
 
   const handleBulkDelete = async () => {
     if (!selectedIds.length) {
-      toast.error("⚠️ No logs selected");
+      toast.error(" No logs selected");
       setShowBulkDelete(false);
       return;
     }
@@ -191,11 +193,11 @@ const ActivityLogs = () => {
           );
           setSelectedIds([]);
           setShowBulkDelete(false);
-          return `✅ ${res.data.deletedCount || selectedIds.length} log(s) deleted`;
+          return ` ${res.data.deletedCount || selectedIds.length} log(s) deleted`;
         },
         error: (err) => {
           setShowBulkDelete(false);
-          return `❌ ${err?.response?.data?.message || "Failed to delete"}`;
+          return ` ${err?.response?.data?.message || "Failed to delete"}`;
         },
       },
       {
@@ -211,11 +213,11 @@ const ActivityLogs = () => {
       const response = await axiosInstance.delete(`/logs/${eventId}`);
       if (response.data.success) {
         setEvents((prev) => prev.filter((e) => String(e._id) !== String(eventId)));
-        toast.success("✅ Log deleted", { id: deleteToast, duration: 2000 });
+        toast.success(" Log deleted", { id: deleteToast, duration: 2000 });
       }
     } catch (error) {
       console.error("Error deleting log:", error);
-      toast.error("❌ Failed to delete log", { id: deleteToast });
+      toast.error(" Failed to delete log", { id: deleteToast });
     }
   };
 
@@ -232,7 +234,7 @@ const ActivityLogs = () => {
     } else {
       const allIds = filteredByStatus.map((e) => String(e._id));
       setSelectedIds(allIds);
-      toast.success(`✅ Selected ${allIds.length} logs`, { duration: 1500 });
+      toast.success(` Selected ${allIds.length} logs`, { duration: 1500 });
     }
   };
 
@@ -252,14 +254,14 @@ const ActivityLogs = () => {
 
   const getEventIcon = (type) => {
     const icons = {
-      task_created: "➕",
-      task_assigned: "📌",
-      task_completed: "✅",
+      task_created: <FaPlus/>,
+      task_assigned: <FaBeer size={24} color="blue"  />,
+      task_completed: "",
       user_mentioned: "💬",
       user_signup: "👤",
-      task_overdue: "⚠️",
+      task_overdue: "",
     };
-    return icons[type] || "🔔";
+    return icons[type] || <FaBell/>;
   };
 
   const getEventMessage = (event) => {
@@ -292,7 +294,7 @@ const ActivityLogs = () => {
               {events.length} total events
               {unreadCount > 0 && (
                 <span className="ml-2 inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
-                  🔴 {unreadCount} unread
+                  {unreadCount} unread
                 </span>
               )}
             </p>
@@ -303,7 +305,7 @@ const ActivityLogs = () => {
                 onClick={handleMarkAllAsRead}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:shadow-lg hover:bg-green-700 transition-all transform hover:scale-105 font-medium"
               >
-                ✅ Mark All as Read
+                 Mark All as Read
               </button>
             )}
             {selectedIds.length > 0 && (
@@ -312,7 +314,7 @@ const ActivityLogs = () => {
                   onClick={handleBulkMarkAsRead}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105 font-medium"
                 >
-                  ✅ Mark Selected ({selectedIds.length})
+                   Mark Selected ({selectedIds.length})
                 </button>
                 <button
                   onClick={() => setShowBulkDelete(true)}
@@ -334,7 +336,7 @@ const ActivityLogs = () => {
               onClick={() => {
                 setShowFilter(sf);
                 setSelectedIds([]);
-                toast.success(`🔍 Showing: ${sf}`, { duration: 1500 });
+                // toast.success(`🔍 Showing: ${sf}`, { duration: 1500 });
               }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 ${
                 showFilter === sf
@@ -342,7 +344,7 @@ const ActivityLogs = () => {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              {sf === "all" ? "All" : sf === "unread" ? "🔴 Unread" : "✅ Read"}
+              {sf === "all" ? "All" : sf === "unread" ? "Unread" : " Read"}
             </button>
           ))}
         </div>
@@ -364,9 +366,9 @@ const ActivityLogs = () => {
               onClick={() => {
                 setFilter(f);
                 setSelectedIds([]);
-                toast.success(`🔍 Filter: ${f.replace(/_/g, " ")}`, {
-                  duration: 1500,
-                });
+                // toast.success(` Filter: ${f.replace(/_/g, " ")}`, {
+                  // duration: 1500,
+                // });
               }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 ${
                 filter === f
@@ -392,7 +394,7 @@ const ActivityLogs = () => {
                 className="w-4 h-4 cursor-pointer text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
               />
               <span className="text-sm font-medium text-gray-700">
-                ✅ Select All ({filteredByStatus.length}{" "}
+                 Select All ({filteredByStatus.length}{" "}
                 {filteredByStatus.length === 1 ? "log" : "logs"})
               </span>
             </label>
@@ -402,13 +404,13 @@ const ActivityLogs = () => {
         {loading && (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-gray-500 mt-4">Loading activity logs...</p>
+            <p className="text-gray-500 mt-4"><FaBeer/>Loading activity logs...</p>
           </div>
         )}
 
         {!loading && filteredByStatus.length === 0 && (
           <div className="text-center py-12 bg-gray-50 rounded-xl">
-            <span className="text-6xl">📋</span>
+            <span className="text-6xl"><MdContentCopy/></span>
             <p className="text-gray-500 mt-4 text-lg">
               {showFilter === "unread" ? "No unread logs" : showFilter === "read" ? "No read logs" : "No logs found"}
             </p>
@@ -458,7 +460,7 @@ const ActivityLogs = () => {
                       className="text-blue-500 hover:text-blue-700 text-sm px-2 py-1 rounded-lg hover:bg-blue-50 transition-all font-medium whitespace-nowrap"
                       title="Mark as read"
                     >
-                      ✅ Read
+                       Read
                     </button>
                   )}
                   <button

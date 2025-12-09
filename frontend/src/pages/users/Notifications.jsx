@@ -6,6 +6,8 @@ import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import { getSocket } from "../../utils/socket";
 import { toast } from "react-toastify";
+import { FaBeer, FaBell, FaPlus, FaTimes } from "react-icons/fa";
+import { MdChatBubble } from "react-icons/md";
 
 const Notifications = () => {
   const [events, setEvents] = useState([]);
@@ -81,15 +83,15 @@ const Notifications = () => {
   const getEventIcon = (type) => {
     switch (type) {
       case "task_created":
-        return "➕";
+        return <FaPlus />
       case "task_assigned":
-        return "📌";
+        return <FaBeer size={24} color="blue" />;
       case "task_completed":
-        return "✅";
+        return <FaTimes />;
       case "user_mentioned":
-        return "💬";
+        return <MdChatBubble />;
       default:
-        return "🔔";
+        return <FaBell/>;
     }
   };
 
@@ -137,7 +139,7 @@ const Notifications = () => {
 
         {!loading && events.length === 0 && (
           <div className="text-center py-12">
-            <span className="text-6xl">🔔</span>
+            {/* <span className="text-xl"><FaBell/></span> */}
             <p className="text-gray-500 mt-4">No notifications yet</p>
           </div>
         )}

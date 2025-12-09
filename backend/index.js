@@ -79,10 +79,10 @@ io.use((socket, next) => {
 
 io.on('connection', (socket) => {
   try {
-    console.log(`✅ Socket connected: ${socket.id} (User: ${socket.user?.id})`);
+    console.log(`Socket connected: ${socket.id} (User: ${socket.user?.id})`);
     if (socket?.user?.id) socket.join(`user:${socket.user.id}`);
     socket.on('disconnect', () => {
-      console.log(`❌ Socket disconnected: ${socket.id}`);
+      console.log(` Socket disconnected: ${socket.id}`);
     });
   } catch (e) {
     console.warn('socket connection error:', e);
@@ -112,9 +112,9 @@ app.use('/api/logs', logsRouter);
 const connectWithRetry = (delay = 3000) => {
   mongoose
     .connect(process.env.MONGO_URI, { maxPoolSize: 10 })
-    .then(() => console.log('✅ Connected to MongoDB'))
+    .then(() => console.log('Connected to MongoDB'))
     .catch((error) => {
-      console.error('❌ MongoDB connection error:', error?.message || error);
+      console.error(' MongoDB connection error:', error?.message || error);
       console.warn(`🔄 Retrying MongoDB connection in ${delay / 1000}s...`);
       setTimeout(() => connectWithRetry(Math.min(delay * 2, 60000)), delay);
     });
@@ -125,7 +125,7 @@ connectWithRetry();
 // --- global error handler (single place) ---
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
-  console.error('❌ Global error:', err && err.stack ? err.stack : err);
+  console.error(' Global error:', err && err.stack ? err.stack : err);
   const status = err?.statusCode || 500;
   const message = err?.message || 'Internal server error';
   res.status(status).json({ success: false, statusCode: status, message });

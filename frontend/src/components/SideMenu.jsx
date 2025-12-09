@@ -5,6 +5,7 @@ import { signOutSuccess } from "../redux/slice/userSlice"
 import { useNavigate } from "react-router-dom"
 import { SIDE_MENU_DATA, USER_SIDE_MENU_DATA } from "../utils/data"
 import toast from "react-hot-toast"
+import { FaHandSparkles } from "react-icons/fa"
 
 const SideMenu = ({ activeMenu }) => {
   const dispatch = useDispatch()
@@ -32,13 +33,13 @@ const SideMenu = ({ activeMenu }) => {
 
       if (response.data) {
         dispatch(signOutSuccess())
-        toast.success("✅ Logged out successfully!", { id: logoutToast })
+        toast.success("Logged out successfully!", { id: logoutToast })
         // console.log("logout : ",response.data)
         setTimeout(() => navigate("/login"), 1000)
       }
     } catch (error) {
       console.log(error)
-      toast.error("❌ Error logging out. Please try again!", { id: logoutToast })
+      toast.error(" Error logging out. Please try again!", { id: logoutToast })
     }
   }
 
@@ -49,7 +50,7 @@ const SideMenu = ({ activeMenu }) => {
 
   const cancelLogout = () => {
     setShowLogoutModal(false)
-    toast.success("✅ Logout cancelled", { duration: 1500 })
+    toast.success(" Logout cancelled", { duration: 1500 })
   }
 
   useEffect(() => {
@@ -119,13 +120,13 @@ const SideMenu = ({ activeMenu }) => {
                 onClick={cancelLogout}
                 className="flex-1 px-4 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-all transform hover:scale-105 font-semibold"
               >
-                ❌ Cancel
+                 Cancel
               </button>
               <button
                 onClick={confirmLogout}
                 className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 font-semibold"
               >
-                👋 Sign Out
+               Sign Out
               </button>
             </div>
           </div>
