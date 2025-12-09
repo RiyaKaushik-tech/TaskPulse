@@ -51,17 +51,7 @@ app.use(
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 app.use('/uploads', express.static(UPLOAD_DIR));
 
-// --- mount routes ---
-app.get('/', (req, res) => res.send('Welcome to taskPulse'));
-
-app.use('/api/auth', authRouter);
-app.use('/api/users', userRouter);
-app.use('/api/tasks', taskRouter);
-app.use('/api/report', reportRouter);
-app.use('/api/uploads', uploadsRouter);
-app.use('/api/logs', logsRouter);
-
-// --- create HTTP server + socket.io AFTER app configured ---
+// --- create HTTP server + socket.io BEFORE mounting routes ---
 const server = http.createServer(app);
 
 const io = new IOServer(server, {
@@ -89,23 +79,43 @@ io.use((socket, next) => {
 
 io.on('connection', (socket) => {
   try {
+    console.log(`✅ Socket connected: ${socket.id} (User: ${socket.user?.id})`);
     if (socket?.user?.id) socket.join(`user:${socket.user.id}`);
-    socket.on('disconnect', () => {});
+    socket.on('disconnect', () => {
+      console.log(`❌ Socket disconnected: ${socket.id}`);
+    });
   } catch (e) {
     console.warn('socket connection error:', e);
   }
 });
 
-app.locals.io = io;
+// Make io accessible in routes via req.app.get('io')
+app.set('io', io);
+
+// Middleware to attach io to every request
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// --- mount routes AFTER io is set up ---
+app.get('/', (req, res) => res.send('Welcome to taskPulse'));
+
+app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
+app.use('/api/tasks', taskRouter);
+app.use('/api/report', reportRouter);
+app.use('/api/uploads', uploadsRouter);
+app.use('/api/logs', logsRouter);
 
 // --- MongoDB connect with retry ---
 const connectWithRetry = (delay = 3000) => {
   mongoose
     .connect(process.env.MONGO_URI, { maxPoolSize: 10 })
-    .then(() => console.log('Connected to MongoDB'))
+    .then(() => console.log('✅ Connected to MongoDB'))
     .catch((error) => {
-      console.error('MongoDB connection error:', error?.message || error);
-      console.warn(`Retrying MongoDB connection in ${delay / 1000}s...`);
+      console.error('❌ MongoDB connection error:', error?.message || error);
+      console.warn(`🔄 Retrying MongoDB connection in ${delay / 1000}s...`);
       setTimeout(() => connectWithRetry(Math.min(delay * 2, 60000)), delay);
     });
 };
@@ -115,7 +125,7 @@ connectWithRetry();
 // --- global error handler (single place) ---
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
-  console.error('Global error:', err && err.stack ? err.stack : err);
+  console.error('❌ Global error:', err && err.stack ? err.stack : err);
   const status = err?.statusCode || 500;
   const message = err?.message || 'Internal server error';
   res.status(status).json({ success: false, statusCode: status, message });
@@ -123,14 +133,20 @@ app.use((err, req, res, next) => {
 
 // --- start server (use server so socket.io works) ---
 server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`CORS allowed origin: ${CORS_ORIGIN}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`🌐 CORS allowed origin: ${CORS_ORIGIN}`);
+  console.log(`🔌 Socket.IO ready for connections`);
 
   // Schedule overdue task check every hour
   setInterval(() => {
+    console.log('⏰ Running scheduled overdue task check...');
     checkOverdueTasks(io);
   }, 60 * 60 * 1000); // 1 hour
 
   // Run once on startup
+  console.log('🔍 Running initial overdue task check...');
   checkOverdueTasks(io);
 });
+
+// Export for testing or external use
+export { app, server, io };
