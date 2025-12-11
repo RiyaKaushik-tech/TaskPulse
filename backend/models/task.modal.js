@@ -36,6 +36,18 @@ const taskSchema = new Schema(
     progress: { type: Number, default: 0 },
 
     overdueNotified: { type: Boolean, default: false },
+
+    comments: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Comment",
+      },
+    ],
+    commentCount: {
+      type: Number,
+      default: 0,
+    },
+    lastCommentAt: Date,
   },
   { timestamps: true }
 );

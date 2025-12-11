@@ -16,6 +16,7 @@ import userRouter from './routes/user.Router.js';
 import reportRouter from './routes/reportRouter.js';
 import uploadsRouter from './routes/uploads.route.js';
 import logsRouter from "./routes/logs.router.js";
+import commentRouter from "./controllers/comment.controller.js";
 
 const __filename__ = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename__);
@@ -107,6 +108,7 @@ app.use('/api/tasks', taskRouter);
 app.use('/api/report', reportRouter);
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/logs', logsRouter);
+app.use('/api/comments',commentRouter)
 
 // --- MongoDB connect with retry ---
 const connectWithRetry = (delay = 3000) => {

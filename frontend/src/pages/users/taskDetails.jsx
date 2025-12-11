@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axiosInstance from "../../utils/axiosInstance";
-import DashboardLayout from "../../components/DashboardLayout";
+import axiosInstance from "../../utils/axiosInstance.js";
+import DashboardLayout from "../../components/DashboardLayout.jsx";
 import moment from "moment";
-import AvatarGroup from "../../components/AvatarGroup";
+import AvatarGroup from "../../components/AvatarGroup.jsx";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import toast from "react-hot-toast";
+import CommentSection from "../../components/CommentSection.jsx";
 
 const TaskDetails = () => {
   const { id } = useParams();
@@ -255,6 +256,7 @@ const TaskDetails = () => {
             </div>
           </div>
         )}
+        <CommentSection taskId={id}/>
       </div>
     </DashboardLayout>
   );
