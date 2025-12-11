@@ -9,7 +9,7 @@ import mongoose from "mongoose";
 const router = express.Router();
 
 // Get all comments for a task
-router.get("/task/:taskId", verifyUser, async (req, res) => {
+router.get("/tasks/:taskId", verifyUser, async (req, res) => {
   try {
     const { taskId } = req.params;
 
@@ -115,36 +115,36 @@ router.post("/", verifyUser, async (req, res) => {
 
       for (const mentionedUser of mentionedUsers) {
         // Create log entry
-        const log = new Log({
-          actor: {
-            _id: userId,
-            name: author.name,
-            email: author.email,
-          },
-          task: {
-            _id: task._id,
-            title: task.title,
-          },
-          targets: [
-            {
-              _id: mentionedUser._id,
-              name: mentionedUser.name,
-            },
-          ],
-          type: "user_mentioned",
-          meta: {
-            commentId: comment._id,
-            commentContent: content.substring(0, 100),
-          },
-        });
+        // const log = new Log({
+        //   actor: {
+        //     _id: userId,
+        //     name: author.name,
+        //     email: author.email,
+        //   },
+        //   task: {
+        //     _id: task._id,
+        //     title: task.title,
+        //   },
+        //   targets: [
+        //     {
+        //       _id: mentionedUser._id,
+        //       name: mentionedUser,
+        //     },
+        //   ],
+        //   type: "user_mentioned",
+        //   meta: {
+        //     commentId: comment._id,
+        //     commentContent: content.substring(0, 100),
+        //   },
+        // });
 
-        await log.save();
+        // await log.save();
 
         // Emit socket event
-        if (io) {
-          io.to(`user:${mentionedUser._id}`).emit("notification:new", log);
-          io.emit("notification:new", log);
-        }
+        // if (io) {
+        //   io.to(`user:${mentionedUser._id}`).emit("notification:new", log);
+        //   io.emit("notification:new", log);
+        // }
       }
     }
 
@@ -180,11 +180,12 @@ router.put("/:commentId", verifyUser, async (req, res) => {
     }
 
     // Check if user is the author
-    if (comment.author.toString() !== userId.toString()) {
-      return res
-        .status(403)
-        .json({ success: false, message: "You can only edit your own comments" });
-    }
+if (comment?.author?.toString() !== userId?.toString()) {
+    return res.status(403).json({
+        success: false,
+        message: "You can only edit your own comments"
+    });
+}
 
     if (!content || content.trim().length === 0) {
       return res
@@ -239,13 +240,12 @@ router.delete("/:commentId", verifyUser, async (req, res) => {
     }
 
     // Check if user is the author
-    if (comment.author.toString() !== userId.toString()) {
-      return res.status(403).json({
+if (comment?.author?.toString() !== userId?.toString()) {
+    return res.status(403).json({
         success: false,
-        message: "You can only delete your own comments",
-      });
-    }
-
+        message: "You can only delete your own comments"
+    });
+}
     // Soft delete
     comment.isDeleted = true;
     await comment.save();
@@ -280,7 +280,12 @@ router.post("/:commentId/reaction", verifyUser, async (req, res) => {
   try {
     const { commentId } = req.params;
     const { emoji } = req.body;
-    const userId = req.user._id;
+       console.log("req.user:", req.user);
+    const userId = req.user.id || req.user._id;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "User not authenticated" });
+    }
 
     const comment = await Comment.findById(commentId);
     if (!comment) {
@@ -290,8 +295,8 @@ router.post("/:commentId/reaction", verifyUser, async (req, res) => {
     }
 
     // Check if user already reacted
-    const existingReaction = comment.reactions.find(
-      (r) => r.user.toString() === userId.toString()
+    const existingReaction = comment.reaction?.find(
+      (r) => r?.user && r.user.toString() === userId.toString()
     );
 
     if (existingReaction) {
@@ -300,28 +305,28 @@ router.post("/:commentId/reaction", verifyUser, async (req, res) => {
       existingReaction.createdAt = new Date();
     } else {
       // Add new reaction
-      comment.reactions.push({
+      comment.reaction.push({
         user: userId,
         emoji,
       });
     }
 
     await comment.save();
-    await comment.populate("reactions.user", "name email profileImageUrl");
+    await comment.populate("reaction.user", "name email profileImageUrl");
 
     // Emit socket event
     const io = req.app.get("io");
     if (io) {
       io.to(`task:${comment.task}`).emit("comment:reaction", {
         commentId: comment._id,
-        reactions: comment.reactions,
+        reaction: comment.reaction,
       });
     }
 
     res.status(200).json({
       success: true,
       message: "Reaction added successfully",
-      reactions: comment.reactions,
+      reaction: comment.reaction,
     });
   } catch (error) {
     console.error("Error adding reaction:", error);
@@ -333,7 +338,12 @@ router.post("/:commentId/reaction", verifyUser, async (req, res) => {
 router.delete("/:commentId/reaction", verifyUser, async (req, res) => {
   try {
     const { commentId } = req.params;
-    const userId = req.user._id;
+       console.log("req.user:", req.user);
+    const userId = req.user.id || req.user._id;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "User not authenticated" });
+    }
 
     const comment = await Comment.findById(commentId);
     if (!comment) {
@@ -342,9 +352,9 @@ router.delete("/:commentId/reaction", verifyUser, async (req, res) => {
         .json({ success: false, message: "Comment not found" });
     }
 
-    comment.reactions = comment.reactions.filter(
-      (r) => r.user.toString() !== userId.toString()
-    );
+    comment.reaction = comment.reaction?.filter(
+      (r) => r?.user && r.user.toString() !== userId.toString()
+    ) || [];
 
     await comment.save();
 
@@ -353,14 +363,14 @@ router.delete("/:commentId/reaction", verifyUser, async (req, res) => {
     if (io) {
       io.to(`task:${comment.task}`).emit("comment:reaction", {
         commentId: comment._id,
-        reactions: comment.reactions,
+        reaction: comment.reaction,
       });
     }
 
     res.status(200).json({
       success: true,
       message: "Reaction removed successfully",
-      reactions: comment.reactions,
+      reaction: comment.reaction,
     });
   } catch (error) {
     console.error("Error removing reaction:", error);

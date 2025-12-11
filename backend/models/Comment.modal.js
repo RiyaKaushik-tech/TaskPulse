@@ -18,7 +18,7 @@ const commentSchema = new mongoose.Schema(
             require: true,
             trim: true
         },
-        mention:[{
+        mentions:[{
             type: mongoose.Schema.Types.ObjectId,
             ref:"User"
         },],
@@ -71,7 +71,7 @@ const commentSchema = new mongoose.Schema(
 
 commentSchema.index({task: 1, createdAt: -1});
 commentSchema.index({author: 1});
-commentSchema.index({mention: 1});
+commentSchema.index({mentions: 1});
 
 const Comment = mongoose.model("Comment", commentSchema);
 export default Comment;

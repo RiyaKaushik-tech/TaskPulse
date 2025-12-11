@@ -63,9 +63,9 @@ const CommentSection = ({ taskId }) => {
       toast.success("🗑️ Comment deleted");
     });
 
-    socket.on("comment:reaction", ({ commentId, reactions }) => {
+    socket.on("comment:reaction", ({ commentId, reaction }) => {
       setComments((prev) =>
-        prev.map((c) => (c._id === commentId ? { ...c, reactions } : c))
+        prev.map((c) => (c._id === commentId ? { ...c, reaction } : c))
       );
     });
 
@@ -294,12 +294,12 @@ const CommentSection = ({ taskId }) => {
                 )}
 
                 <div className="flex items-center gap-4 mt-2">
-                  {/* Reactions */}
+                  {/* reaction */}
                   <div className="flex items-center gap-1">
-                    {comment.reactions && comment.reactions.length > 0 && (
+                    {comment.reaction && comment.reaction.length > 0 && (
                       <div className="flex gap-1">
                         {Object.entries(
-                          comment.reactions.reduce((acc, r) => {
+                          comment.reaction.reduce((acc, r) => {
                             acc[r.emoji] = (acc[r.emoji] || 0) + 1;
                             return acc;
                           }, {})
