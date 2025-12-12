@@ -33,7 +33,7 @@ const ActivityLogs = () => {
           updated[exists] = { ...updated[exists], ...data };
           return updated;
         }
-        toast.success("🆕 New activity logged", { duration: 2000 });
+        toast.success(" New activity logged", { duration: 2000 });
         return [data, ...prev];
       });
     });
@@ -69,7 +69,7 @@ const ActivityLogs = () => {
 
   const fetchEvents = async () => {
     setLoading(true);
-    const loadingToast = toast.loading(<FaBeer/>,"Loading activity logs...");
+    // const loadingToast = toast.loading("Loading activity logs...");
     try {
       const res = await axiosInstance.get("/logs/admin");
       const eventsData = res.data?.events || [];
@@ -84,7 +84,7 @@ const ActivityLogs = () => {
   };
 
   const handleMarkAsRead = useCallback(async (eventId) => {
-    const readToast = toast.loading("📝 Marking as read...");
+    const readToast = toast.loading(" Marking as read...");
 
     try {
       const response = await axiosInstance.put(`/logs/${eventId}/read`);
@@ -113,7 +113,7 @@ const ActivityLogs = () => {
     }
 
     const unreadIds = unreadEvents.map(e => String(e._id));
-    const readToast = toast.loading(`📝 Marking ${unreadIds.length} log(s) as read...`);
+    const readToast = toast.loading(` Marking ${unreadIds.length} log(s) as read...`);
 
     try {
       const response = await axiosInstance.post(`/logs/admin/bulk-read`, {
@@ -145,7 +145,7 @@ const ActivityLogs = () => {
       return;
     }
 
-    const readToast = toast.loading(`📝 Marking ${selectedIds.length} log(s) as read...`);
+    const readToast = toast.loading(` Marking ${selectedIds.length} log(s) as read...`);
 
     try {
       const response = await axiosInstance.post(`/logs/admin/bulk-read`, {
@@ -186,7 +186,7 @@ const ActivityLogs = () => {
     toast.promise(
       deleteRequest,
       {
-        loading: `🗑️ Deleting ${selectedIds.length} log(s)...`,
+        loading: ` Deleting ${selectedIds.length} log(s)...`,
         success: (res) => {
           setEvents((prev) =>
             prev.filter((e) => !selectedIds.includes(String(e._id)))
@@ -208,7 +208,7 @@ const ActivityLogs = () => {
   };
 
   const handleDeleteSingle = async (eventId) => {
-    const deleteToast = toast.loading("🗑️ Deleting log...");
+    const deleteToast = toast.loading(" Deleting log...");
     try {
       const response = await axiosInstance.delete(`/logs/${eventId}`);
       if (response.data.success) {
@@ -230,7 +230,7 @@ const ActivityLogs = () => {
   const toggleSelectAll = () => {
     if (selectedIds.length === filteredByStatus.length && filteredByStatus.length > 0) {
       setSelectedIds([]);
-      toast.success("❎ Deselected all", { duration: 1500 });
+      toast.success(" Deselected all", { duration: 1500 });
     } else {
       const allIds = filteredByStatus.map((e) => String(e._id));
       setSelectedIds(allIds);
@@ -254,14 +254,14 @@ const ActivityLogs = () => {
 
   const getEventIcon = (type) => {
     const icons = {
-      task_created: <FaPlus/>,
-      task_assigned: <FaBeer size={24} color="blue"  />,
+      task_created:"",
+      task_assigned:"",
       task_completed: "",
-      user_mentioned: "💬",
-      user_signup: "👤",
+      user_mentioned: "",
+      user_signup: "",
       task_overdue: "",
     };
-    return icons[type] || <FaBell/>;
+    return icons[type] || <FaBell className="text-lg mt-1.5"/>;
   };
 
   const getEventMessage = (event) => {
@@ -320,7 +320,7 @@ const ActivityLogs = () => {
                   onClick={() => setShowBulkDelete(true)}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg shadow-md hover:shadow-lg hover:bg-red-700 transition-all transform hover:scale-105 font-medium"
                 >
-                  🗑️ Delete ({selectedIds.length})
+                   Delete ({selectedIds.length})
                 </button>
               </>
             )}
@@ -336,7 +336,7 @@ const ActivityLogs = () => {
               onClick={() => {
                 setShowFilter(sf);
                 setSelectedIds([]);
-                // toast.success(`🔍 Showing: ${sf}`, { duration: 1500 });
+                // toast.success(` Showing: ${sf}`, { duration: 1500 });
               }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 ${
                 showFilter === sf
@@ -404,13 +404,13 @@ const ActivityLogs = () => {
         {loading && (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-gray-500 mt-4"><FaBeer/>Loading activity logs...</p>
+            <p className="text-gray-500 mt-4">Loading activity logs...</p>
           </div>
         )}
 
         {!loading && filteredByStatus.length === 0 && (
           <div className="text-center py-12 bg-gray-50 rounded-xl">
-            <span className="text-6xl"><MdContentCopy/></span>
+            {/* <span className="text-6xl"><MdContentCopy/></span> */}
             <p className="text-gray-500 mt-4 text-lg">
               {showFilter === "unread" ? "No unread logs" : showFilter === "read" ? "No read logs" : "No logs found"}
             </p>
@@ -468,7 +468,7 @@ const ActivityLogs = () => {
                     className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded-lg hover:bg-red-50 transition-all font-medium whitespace-nowrap"
                     title="Delete this log"
                   >
-                    🗑️
+                    
                   </button>
                 </div>
               </div>

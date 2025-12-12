@@ -90,12 +90,12 @@ const CommentSection = ({ taskId }) => {
 
     socket.on("comment:updated", (comment) => {
       updateCommentInState(comment);
-      toast.success("✏️ Comment updated");
+      toast.success("Comment updated");
     });
 
     socket.on("comment:deleted", ({ commentId }) => {
       removeCommentFromState(commentId);
-      toast.success("🗑️ Comment deleted");
+      toast.success(" Comment deleted");
     });
 
     socket.on("comment:reaction", ({ commentId, reaction }) => {
@@ -120,7 +120,7 @@ const CommentSection = ({ taskId }) => {
       setComments(response.data.comments || []);
     } catch (error) {
       console.error("Error fetching comments:", error);
-      toast.error("❌ Failed to load comments");
+      toast.error(" Failed to load comments");
     } finally {
       setLoading(false);
     }
@@ -179,7 +179,7 @@ const CommentSection = ({ taskId }) => {
 
   const handleSubmitComment = async () => {
     if (!newComment.trim()) {
-      toast.error("⚠️ Please enter a comment");
+      toast.error(" Please enter a comment");
       return;
     }
 
@@ -200,20 +200,20 @@ const CommentSection = ({ taskId }) => {
       setNewComment("");
       setReplyTo(null);
       setSelectedMentions([]);
-      toast.success("✅ Comment added", { id: submitToast });
+      toast.success(" Comment added", { id: submitToast });
     } catch (error) {
       console.error("Error adding comment:", error);
-      toast.error("❌ Failed to add comment", { id: submitToast });
+      toast.error(" Failed to add comment", { id: submitToast });
     }
   };
 
   const handleEditComment = async (commentId) => {
     if (!editContent.trim()) {
-      toast.error("⚠️ Please enter comment content");
+      toast.error(" Please enter comment content");
       return;
     }
 
-    const editToast = toast.loading("✏️ Updating comment...");
+    const editToast = toast.loading(" Updating comment...");
     try {
       const { data } = await axiosInstance.put(`/comments/${commentId}`, {
         content: editContent,
@@ -225,23 +225,23 @@ const CommentSection = ({ taskId }) => {
 
       setEditingComment(null);
       setEditContent("");
-      toast.success("✅ Comment updated", { id: editToast });
+      toast.success(" Comment updated", { id: editToast });
     } catch (error) {
       console.error("Error updating comment:", error);
-      toast.error("❌ Failed to update comment", { id: editToast });
+      toast.error(" Failed to update comment", { id: editToast });
     }
   };
 
   const handleDeleteComment = async (commentId) => {
     
-    const deleteToast = toast.loading("🗑️ Deleting comment...");
+    const deleteToast = toast.loading(" Deleting comment...");
     try {
       await axiosInstance.delete(`/comments/${commentId}`);
       removeCommentFromState(commentId);
-      toast.success("✅ Comment deleted", { id: deleteToast });
+      toast.success(" Comment deleted", { id: deleteToast });
     } catch (error) {
       console.error("Error deleting comment:", error);
-      toast.error("❌ Failed to delete comment", { id: deleteToast });
+      toast.error(" Failed to delete comment", { id: deleteToast });
     }
   };
 
@@ -269,7 +269,7 @@ const CommentSection = ({ taskId }) => {
       setShowEmojiPicker(null);
     } catch (error) {
       console.error("Error adding reaction:", error);
-      toast.error("❌ Failed to add reaction");
+      toast.error(" Failed to add reaction");
     }
   };
 
@@ -431,7 +431,7 @@ const CommentSection = ({ taskId }) => {
                         onClick={() => openDeleteConfirm(comment)}
                         className="text-red-500 hover:text-red-700 text-sm font-medium"
                       >
-                        🗑️ Delete
+                         Delete
                       </button>
                     </>
                   )}

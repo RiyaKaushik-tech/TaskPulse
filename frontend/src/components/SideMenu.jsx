@@ -27,7 +27,7 @@ const SideMenu = ({ activeMenu }) => {
   }
 
   const handleLogout = async () => {
-    const logoutToast = toast.loading("🔐 Signing out...")
+    const logoutToast = toast.loading(" Signing out...")
     try {
       const response = await axiosInstance.post("/auth/sign-out")
 

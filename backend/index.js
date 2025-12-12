@@ -146,7 +146,7 @@ server.listen(PORT, () => {
   }, 60 * 60 * 1000); // 1 hour
 
   // Run once on startup
-  console.log('🔍 Running initial overdue task check...');
+  console.log(' Running initial overdue task check...');
   checkOverdueTasks(io);
 });
 

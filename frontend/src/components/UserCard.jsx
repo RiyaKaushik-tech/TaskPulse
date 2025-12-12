@@ -1,9 +1,13 @@
 
 import React from "react"
 
-const UserCard = ({ userInfo }) => {
+const UserCard = ({ userInfo, onClick }) => {
   return (
-    <div className="p-2 bg-white rounded-xl shadow-md shadow-gray-100 border border-gray-200/50">
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left p-2 bg-white rounded-xl shadow-md shadow-gray-100 border border-gray-200/50 hover:shadow-lg transition-shadow"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
@@ -39,7 +43,7 @@ const UserCard = ({ userInfo }) => {
           status="completed"
         />
       </div>
-    </div>
+    </button>
   )
 }
 

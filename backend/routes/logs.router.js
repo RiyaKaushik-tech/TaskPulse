@@ -51,6 +51,22 @@ router.get("/user/unread-count", verifyUser, async (req, res, next) => {
   }
 });
 
+// Mark all events as read for current user
+router.put("/user/read-all", verifyUser, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const result = await Event.updateMany(
+      { targets: userId, readBy: { $ne: userId } },
+      { $addToSet: { readBy: userId } }
+    );
+
+    return res.json({ success: true, modifiedCount: result.modifiedCount });
+  } catch (err) {
+    console.error("read-all error:", err);
+    next(err);
+  }
+});
+
 // Mark event as read
 router.put("/:id/read", verifyUser, async (req, res, next) => {
   try {
@@ -154,6 +170,27 @@ router.post("/admin/bulk-delete", verifyUser, adminOnly, async (req, res, next) 
     });
   } catch (err) {
     console.error("Bulk delete error:", err);
+    next(err);
+  }
+});
+
+// Bulk mark as read for admin on selected events
+router.post("/admin/bulk-read", verifyUser, adminOnly, async (req, res, next) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || !ids.length) {
+      return res.status(400).json({ success: false, message: "Provide array of ids" });
+    }
+
+    const adminId = req.user.id;
+    const result = await Event.updateMany(
+      { _id: { $in: ids } },
+      { $addToSet: { readBy: adminId } }
+    );
+
+    return res.json({ success: true, modifiedCount: result.modifiedCount });
+  } catch (err) {
+    console.error("Bulk read error:", err);
     next(err);
   }
 });

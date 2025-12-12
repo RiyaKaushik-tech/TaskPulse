@@ -9,6 +9,7 @@ import ManageUsers from "./pages/admin/manageUsers.jsx"
 import MyTasks from "./pages/users/myTasks.jsx"
 import TaskDetails from "./pages/users/TaskDetails.jsx"
 import UserDashboard from "./pages/users/userDashboard.jsx"
+import UserDetails from "./pages/users/UserDetails.jsx"
 import Dashboard from "./pages/admin/dashboard.jsx"
 import HomePage from "./pages/home.jsx"
 import NotFound from "./pages/NotFound.jsx"
@@ -43,6 +44,7 @@ function App() {
         <Route path="/admin/dashboard" element={<Dashboard/>} />
         <Route path="/admin/create-task" element={<CreateTask/>} />
         <Route path="/admin/manageUsers" element={<ManageUsers/>} />
+        <Route path="/admin/users/:id" element={<UserDetails/>} />
         <Route path="/admin/manageTasks" element={<ManageTasks/>} />
   <Route path="/admin/activity-logs" element={<ActivityLogs />} />
       </Route>

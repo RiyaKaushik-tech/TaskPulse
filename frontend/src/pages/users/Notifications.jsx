@@ -120,6 +120,19 @@ const Notifications = () => {
     }
   };
 
+  const markAllRead = async () => {
+    try {
+      const res = await axiosInstance.put("/logs/user/read-all");
+      if (res.data?.success) {
+        setEvents((prev) => prev.map((e) => ({ ...e, readBy: ["current"] })));
+        toast.success("All notifications marked as read");
+      }
+    } catch (err) {
+      console.error("Failed to mark all as read:", err);
+      toast.error("Failed to mark all as read");
+    }
+  };
+
   return (
     <DashboardLayout activeMenu="Notifications">
       <div className="p-6">
@@ -131,6 +144,14 @@ const Notifications = () => {
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm"
             >
               Refresh
+            </button>
+          )}
+          {events.length > 0 && (
+            <button
+              onClick={markAllRead}
+              className="ml-2 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition text-sm"
+            >
+              Mark all read
             </button>
           )}
         </div>

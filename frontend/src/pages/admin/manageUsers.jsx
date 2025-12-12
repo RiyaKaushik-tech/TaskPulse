@@ -4,8 +4,10 @@ import DashboardLayout from "../../components/DashboardLayout"
 import { FaFileAlt } from "react-icons/fa"
 import UserCard from "../../components/UserCard"
 import toast from "react-hot-toast"
+import { useNavigate } from "react-router-dom"
 
 const ManageUsers = () => {
+  const navigate = useNavigate()
   const [allUsers, setAllUsers] = useState([])
 
   const getAllUsers = async () => {
@@ -71,7 +73,11 @@ const ManageUsers = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           {allUsers?.map((user) => (
-            <UserCard key={user._id} userInfo={user} />
+            <UserCard
+              key={user._id}
+              userInfo={user}
+              onClick={() => navigate(`/admin/users/${user._id}`)}
+            />
           ))}
         </div>
       </div>

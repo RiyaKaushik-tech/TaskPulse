@@ -58,7 +58,7 @@ const ManageTasks = () => {
   }
 
   const handleClick = (taskData) => {
-    toast.success("📝 Opening task details...", { duration: 1500 })
+    toast.success(" Opening task details...", { duration: 1500 })
     navigate("/admin/create-task", { state: { taskId: taskData._id } })
   }
 
