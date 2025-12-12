@@ -35,7 +35,7 @@ const Navbar = ({ activeMenu }) => {
       </div>
 
       <div className="flex items-center gap-4">
-        {console.log("Rendering bell - isAdmin:", isAdmin)}
+        {/* {console.log("Rendering bell - isAdmin:", isAdmin)} */}
         {isAdmin ? <AdminNotificationBell /> : <UserNotificationBell />}
       </div>
 

@@ -80,19 +80,19 @@ const Notifications = () => {
     }
   };
 
-  const getEventIcon = (type) => {
-    switch (type) {
-      case "task_created":
-        return <FaPlus />
-      case "task_assigned":
-        return <FaBeer size={24} color="blue" />;
-      case "task_completed":
-        return <FaTimes />;
-      case "user_mentioned":
-        return <MdChatBubble />;
-      default:
-        return <FaBell/>;
-    }
+  const getEventIcon = () => {
+    // switch (type) {
+    //   case "task_created":
+    //     return <FaPlus />
+    //   case "task_assigned":
+    //     return <FaBeer size={24} color="blue" />;
+    //   case "task_completed":
+    //     return <FaTimes />;
+    //   case "user_mentioned":
+    //     return <MdChatBubble />;
+      // default:
+        return <FaBell className="text-lg mt-1.5"/>;
+    // }
   };
 
   const getEventMessage = (event) => {
