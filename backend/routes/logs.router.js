@@ -8,13 +8,32 @@ const router = express.Router();
 router.get("/user", verifyUser, async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const events = await Event.find({ targets: userId })
-      .populate("actor", "name email profilePicUrl")
-      .populate("task", "title status")
-      .sort({ createdAt: -1 })
-      .limit(100);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
 
-    res.json({ success: true, events });
+    const [events, totalCount] = await Promise.all([
+      Event.find({ targets: userId })
+        .populate("actor", "name email profilePicUrl")
+        .populate("task", "title status")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Event.countDocuments({ targets: userId })
+    ]);
+
+    res.json({ 
+      success: true, 
+      events,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalItems: totalCount,
+        itemsPerPage: limit,
+        hasNextPage: page * limit < totalCount,
+        hasPrevPage: page > 1,
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -23,14 +42,33 @@ router.get("/user", verifyUser, async (req, res, next) => {
 // Get logs for admin (all events)
 router.get("/admin", verifyUser, adminOnly, async (req, res, next) => {
   try {
-    const events = await Event.find({})
-      .populate("actor", "name email profilePicUrl")
-      .populate("task", "title status")
-      .populate("targets", "name email")
-      .sort({ createdAt: -1 })
-      .limit(200);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100;
+    const skip = (page - 1) * limit;
 
-    res.json({ success: true, events });
+    const [events, totalCount] = await Promise.all([
+      Event.find({})
+        .populate("actor", "name email profilePicUrl")
+        .populate("task", "title status")
+        .populate("targets", "name email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Event.countDocuments({})
+    ]);
+
+    res.json({ 
+      success: true, 
+      events,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalItems: totalCount,
+        itemsPerPage: limit,
+        hasNextPage: page * limit < totalCount,
+        hasPrevPage: page > 1,
+      },
+    });
   } catch (err) {
     next(err);
   }

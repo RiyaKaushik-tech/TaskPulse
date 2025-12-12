@@ -52,4 +52,14 @@ const taskSchema = new Schema(
   { timestamps: true }
 );
 
+// Indexes for performance optimization
+taskSchema.index({ status: 1, createdAt: -1 });
+taskSchema.index({ priority: 1 });
+taskSchema.index({ dueDate: 1 });
+taskSchema.index({ assignedTo: 1 });
+taskSchema.index({ createdBy: 1 });
+taskSchema.index({ tags: 1 });
+taskSchema.index({ status: 1, assignedTo: 1 });
+taskSchema.index({ status: 1, priority: 1, dueDate: 1 });
+
 export default mongoose.model("Task", taskSchema);

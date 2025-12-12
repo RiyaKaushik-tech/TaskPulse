@@ -140,7 +140,12 @@ export const createTask = async (req, res, next) => {
 
 export const getTask = async (req, res, next) => {
   try {
-    let { status, search, sortBy, sortOrder, assignedToUser, tags } = req.query;
+    let { status, search, sortBy, sortOrder, assignedToUser, tags, page, limit } = req.query;
+
+    // Pagination setup
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 20;
+    const skip = (pageNum - 1) * limitNum;
 
     let filter = {};
     if (status) {
@@ -208,6 +213,9 @@ export const getTask = async (req, res, next) => {
       }
     }
 
+    // Apply pagination
+    query = query.skip(skip).limit(limitNum);
+
     let tasks = await query;
 
     tasks = await Promise.all(
@@ -220,28 +228,25 @@ export const getTask = async (req, res, next) => {
       })
     );
 
-    // task summary
-    const allTasks = await Task.countDocuments(
-      req.user.role === "admin" ? {} : { assignedTo: req.user.id }
-    );
-
-    const pendingTasks = await Task.countDocuments({
-      ...filter,
-      status: "pending",
-      ...(req.user.role !== "admin" && { assignedTo: req.user.id }),
-    });
-
-    const inProgressTasks = await Task.countDocuments({
-      ...filter,
-      status: "in-progress",
-      ...(req.user.role !== "admin" && { assignedTo: req.user.id }),
-    });
-
-    const completedTasks = await Task.countDocuments({
-      ...filter,
-      status: "completed",
-      ...(req.user.role !== "admin" && { assignedTo: req.user.id }),
-    });
+    // task summary and total count
+    const baseFilter = req.user.role === "admin" ? filter : { ...filter, assignedTo: req.user.id };
+    
+    const [allTasks, pendingTasks, inProgressTasks, completedTasks, totalCount] = await Promise.all([
+      Task.countDocuments(req.user.role === "admin" ? {} : { assignedTo: req.user.id }),
+      Task.countDocuments({
+        ...baseFilter,
+        status: "pending",
+      }),
+      Task.countDocuments({
+        ...baseFilter,
+        status: "in-progress",
+      }),
+      Task.countDocuments({
+        ...baseFilter,
+        status: "completed",
+      }),
+      Task.countDocuments(baseFilter)
+    ]);
 
     return res.status(200).json({
       success: true,
@@ -251,6 +256,14 @@ export const getTask = async (req, res, next) => {
         pendingTasks,
         inProgressTasks,
         completedTasks,
+      },
+      pagination: {
+        currentPage: pageNum,
+        totalPages: Math.ceil(totalCount / limitNum),
+        totalItems: totalCount,
+        itemsPerPage: limitNum,
+        hasNextPage: pageNum * limitNum < totalCount,
+        hasPrevPage: pageNum > 1,
       },
     });
   } catch (error) {

@@ -39,6 +39,12 @@ const eventSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+// Indexes for performance optimization
+eventSchema.index({ targets: 1, createdAt: -1 });
+eventSchema.index({ type: 1 });
+eventSchema.index({ task: 1 });
+eventSchema.index({ targets: 1, readBy: 1 });
+
 const Event = mongoose.model("Event", eventSchema);
 
 export default Event;

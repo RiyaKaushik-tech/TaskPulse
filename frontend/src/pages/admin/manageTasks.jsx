@@ -18,13 +18,24 @@ const ManageTasks = () => {
   const [tags, setTags] = useState("")
   const [assignedToUser, setAssignedToUser] = useState("")
   const [users, setUsers] = useState([])
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 20,
+  })
+  const [currentPage, setCurrentPage] = useState(1)
 
   const navigate = useNavigate()
 
   const getAllTasks = async () => {
     // const loadingToast = toast.loading(" Loading tasks...")
     try {
-      const params = { status: STATUS_MAP[filterStatus] ?? "" }
+      const params = { 
+        status: STATUS_MAP[filterStatus] ?? "",
+        page: currentPage,
+        limit: 20,
+      }
       
       if (searchTerm) params.search = searchTerm
       if (sortBy) {
@@ -38,6 +49,9 @@ const ManageTasks = () => {
 
       if (response?.data) {
         setAllTasks(response.data?.tasks?.length > 0 ? response.data.tasks : [])
+        if (response.data?.pagination) {
+          setPagination(response.data.pagination)
+        }
         // toast.success(` ${response.data?.tasks?.length || 0} tasks loaded`, { id: loadingToast })
       }
 
@@ -152,7 +166,12 @@ const ManageTasks = () => {
     getAllTasks()
 
     return () => {}
-  }, [filterStatus, searchTerm, sortBy, sortOrder, tags, assignedToUser])
+  }, [filterStatus, searchTerm, sortBy, sortOrder, tags, assignedToUser, currentPage])
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <DashboardLayout activeMenu={"Manage Task"}>
@@ -226,6 +245,63 @@ const ManageTasks = () => {
             />
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {pagination.totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!pagination.hasPrevPage}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              Previous
+            </button>
+            
+            <div className="flex gap-1">
+              {[...Array(pagination.totalPages)].map((_, idx) => {
+                const pageNum = idx + 1
+                // Show first 2, last 2, and current +/- 1
+                if (
+                  pageNum === 1 ||
+                  pageNum === pagination.totalPages ||
+                  (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`px-3 py-2 rounded-lg transition ${
+                        currentPage === pageNum
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                } else if (
+                  pageNum === currentPage - 2 ||
+                  pageNum === currentPage + 2
+                ) {
+                  return <span key={pageNum} className="px-2">...</span>
+                }
+                return null
+              })}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!pagination.hasNextPage}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              Next
+            </button>
+
+            <span className="ml-4 text-sm text-gray-600">
+              Page {pagination.currentPage} of {pagination.totalPages} ({pagination.totalItems} total)
+            </span>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   )

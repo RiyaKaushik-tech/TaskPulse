@@ -16,18 +16,48 @@ import { ErrorHandler } from "../utils/error.js";
 import Task from "../models/task.modal.js";
 import User from "../models/user.modals.js";
 import mongoose from "mongoose";
+import { cacheMiddleware, invalidateCache } from "../utils/cache.js";
 
 const router = express.Router();
 
-router.post("/create-task", verifyUser, adminOnly, createTask);
-router.get("/", verifyUser, getTask);
-router.get("/dashboard-data", verifyUser, adminOnly, getDashboardData);
-router.get("/user-dashboard-data", verifyUser, getUserDashboardData);
-router.get("/:id", verifyUser, getTaskById);
-router.put("/:id", verifyUser, updateTask);
-router.delete("/:id", verifyUser, adminOnly, deleteTask);
-router.put("/:id/status", verifyUser, updateTaskStatus);
-router.put("/:id/todo", verifyUser, updateTodoChecklist);
+router.post("/create-task", verifyUser, adminOnly, async (req, res, next) => {
+  // Invalidate task cache when new task is created
+  invalidateCache('tasks:');
+  await createTask(req, res, next);
+});
+
+router.get("/", verifyUser, cacheMiddleware('tasks', 180), getTask);
+router.get("/dashboard-data", verifyUser, adminOnly, cacheMiddleware('dashboard', 120), getDashboardData);
+router.get("/user-dashboard-data", verifyUser, cacheMiddleware('user-dashboard', 120), getUserDashboardData);
+router.get("/:id", verifyUser, cacheMiddleware('task', 300, (req) => `task:${req.params.id}`), getTaskById);
+
+router.put("/:id", verifyUser, async (req, res, next) => {
+  // Invalidate task cache when task is updated
+  invalidateCache('tasks:');
+  invalidateCache(`task:${req.params.id}`);
+  invalidateCache('dashboard');
+  await updateTask(req, res, next);
+});
+
+router.delete("/:id", verifyUser, adminOnly, async (req, res, next) => {
+  // Invalidate task cache when task is deleted
+  invalidateCache('tasks:');
+  invalidateCache(`task:${req.params.id}`);
+  invalidateCache('dashboard');
+  await deleteTask(req, res, next);
+});
+
+router.put("/:id/status", verifyUser, async (req, res, next) => {
+  invalidateCache('tasks:');
+  invalidateCache(`task:${req.params.id}`);
+  invalidateCache('dashboard');
+  await updateTaskStatus(req, res, next);
+});
+
+router.put("/:id/todo", verifyUser, async (req, res, next) => {
+  invalidateCache(`task:${req.params.id}`);
+  await updateTodoChecklist(req, res, next);
+});
 
 // Add comment route (if not exists) to handle mentions
 router.post("/:id/comment", verifyUser, async (req, res, next) => {
