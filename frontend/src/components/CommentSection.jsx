@@ -4,6 +4,8 @@ import { useSelector } from "react-redux";
 import moment from "moment";
 import toast from "react-hot-toast";
 import { getSocket } from "../utils/socket";
+import DeleteAlert from "./DeleteAlert";
+
 
 const CommentSection = ({ taskId }) => {
   const [comments, setComments] = useState([]);
@@ -18,48 +20,81 @@ const CommentSection = ({ taskId }) => {
   const [users, setUsers] = useState([]);
   const [selectedMentions, setSelectedMentions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteMessage, setDeleteMessage] = useState("");
 
   const { currentUser } = useSelector((state) => state.user);
   const textareaRef = useRef(null);
   const mentionsRef = useRef(null);
 
+  // Helper to insert a new or replied comment without a full refresh
+  const addCommentToState = (comment) => {
+    setComments((prev) => {
+      if (comment.parentComment) {
+        return prev.map((c) =>
+          c._id === comment.parentComment
+            ? { ...c, replies: [...(c.replies || []), comment] }
+            : c
+        );
+      }
+      return [comment, ...prev];
+    });
+  };
+
+  // Helper to update a comment wherever it sits (top-level or reply)
+  const updateCommentInState = (updated) => {
+    setComments((prev) =>
+      prev.map((c) => {
+        if (c._id === updated._id) return { ...c, ...updated };
+        return {
+          ...c,
+          replies: (c.replies || []).map((r) =>
+            r._id === updated._id ? { ...r, ...updated } : r
+          ),
+        };
+      })
+    );
+  };
+
+  // Helper to remove a comment from state (handles replies too)
+  const removeCommentFromState = (id) => {
+    setComments((prev) =>
+      prev
+        .filter((c) => c._id !== id)
+        .map((c) => ({
+          ...c,
+          replies: (c.replies || []).filter((r) => r._id !== id),
+        }))
+    );
+  };
+
   useEffect(() => {
     fetchComments();
     fetchUsers();
-    setupSocketListeners();
+    const cleanup = setupSocketListeners();
+    return () => {
+      if (typeof cleanup === "function") cleanup();
+    };
   }, [taskId]);
 
   const setupSocketListeners = () => {
     const socket = getSocket();
-    if (!socket) return;
+    if (!socket) return () => {};
 
     socket.emit("join-task", taskId);
 
     socket.on("comment:new", (comment) => {
-      if (comment.parentComment) {
-        // It's a reply
-        setComments((prev) =>
-          prev.map((c) =>
-            c._id === comment.parentComment
-              ? { ...c, replies: [...(c.replies || []), comment] }
-              : c
-          )
-        );
-      } else {
-        setComments((prev) => [comment, ...prev]);
-      }
+      addCommentToState(comment);
       toast.success("💬 New comment added");
     });
 
     socket.on("comment:updated", (comment) => {
-      setComments((prev) =>
-        prev.map((c) => (c._id === comment._id ? comment : c))
-      );
+      updateCommentInState(comment);
       toast.success("✏️ Comment updated");
     });
 
     socket.on("comment:deleted", ({ commentId }) => {
-      setComments((prev) => prev.filter((c) => c._id !== commentId));
+      removeCommentFromState(commentId);
       toast.success("🗑️ Comment deleted");
     });
 
@@ -150,12 +185,17 @@ const CommentSection = ({ taskId }) => {
 
     const submitToast = toast.loading("💬 Adding comment...");
     try {
-      await axiosInstance.post("/comments", {
+      const { data } = await axiosInstance.post("/comments", {
         taskId,
         content: newComment,
         mentions: selectedMentions,
         parentCommentId: replyTo?._id || null,
       });
+
+      // Optimistically update local state with returned comment
+      if (data?.comment) {
+        addCommentToState(data.comment);
+      }
 
       setNewComment("");
       setReplyTo(null);
@@ -175,9 +215,13 @@ const CommentSection = ({ taskId }) => {
 
     const editToast = toast.loading("✏️ Updating comment...");
     try {
-      await axiosInstance.put(`/comments/${commentId}`, {
+      const { data } = await axiosInstance.put(`/comments/${commentId}`, {
         content: editContent,
       });
+
+      if (data?.comment) {
+        updateCommentInState(data.comment);
+      }
 
       setEditingComment(null);
       setEditContent("");
@@ -189,14 +233,34 @@ const CommentSection = ({ taskId }) => {
   };
 
   const handleDeleteComment = async (commentId) => {
+    
     const deleteToast = toast.loading("🗑️ Deleting comment...");
     try {
       await axiosInstance.delete(`/comments/${commentId}`);
+      removeCommentFromState(commentId);
       toast.success("✅ Comment deleted", { id: deleteToast });
     } catch (error) {
       console.error("Error deleting comment:", error);
       toast.error("❌ Failed to delete comment", { id: deleteToast });
     }
+  };
+
+  const openDeleteConfirm = (comment) => {
+    setDeleteTarget(comment);
+    const snippet = comment?.content ? `: "${comment.content.slice(0, 80)}"` : "";
+    setDeleteMessage(`Delete this comment${snippet}?`);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget?._id) return;
+    await handleDeleteComment(deleteTarget._id);
+    setDeleteTarget(null);
+    setDeleteMessage("");
+  };
+
+  const cancelDelete = () => {
+    setDeleteTarget(null);
+    setDeleteMessage("");
   };
 
   const handleReaction = async (commentId, emoji) => {
@@ -364,7 +428,7 @@ const CommentSection = ({ taskId }) => {
                         ✏️ Edit
                       </button>
                       <button
-                        onClick={() => handleDeleteComment(comment._id)}
+                        onClick={() => openDeleteConfirm(comment)}
                         className="text-red-500 hover:text-red-700 text-sm font-medium"
                       >
                         🗑️ Delete
@@ -389,6 +453,13 @@ const CommentSection = ({ taskId }) => {
 
   return (
     <div className="mt-8">
+      {deleteTarget && (
+        <DeleteAlert
+          message={deleteMessage || "Delete this comment?"}
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+        />
+      )}
       <h3 className="text-xl font-bold text-gray-800 mb-4">
         💬 Comments ({comments.length})
       </h3>
