@@ -23,25 +23,25 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    let profileImageUrl = ""
+    let profilePicUrl = ""
 
    
     if (profileImage) {
       try {
         const imageUploadRes = await uploadImage(profileImage)
         // support multiple shapes returned by upload util / 3rd party
-        profileImageUrl =
+        profilePicUrl =
           imageUploadRes?.imageURL ||
           imageUploadRes?.imageUrl ||
           imageUploadRes?.url ||
           imageUploadRes?.secure_url ||
           imageUploadRes?.data?.url ||
           ""
-        console.log("uploadImage result:", imageUploadRes, "used:", profileImageUrl)
+        console.log("uploadImage result:", imageUploadRes, "used:", profilePicUrl)
       } catch (uploadErr) {
         toast.error("Image upload failed:", uploadErr)
         console.error("Image upload failed:", uploadErr)
-        profileImageUrl = ""
+        profilePicUrl = ""
       }
     }
 
@@ -50,7 +50,7 @@ const SignUp = () => {
         name: fullName,
         email,
         password,
-        profileImageUrl, // send normalized key
+        profilePicUrl, // send normalized key
         adminJoinCode: adminInviteToken,
       })
 

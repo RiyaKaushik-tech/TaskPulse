@@ -5,7 +5,7 @@ import { updateTask } from "../controllers/task.controller.js";
 
 const router = express.Router();
 
-router.get('/get-users', verifyUser , adminOnly, getUser)
+router.get('/get-users', verifyUser , getUser)
 router.get('/:id', verifyUser , getUserById)
 
 export default router;

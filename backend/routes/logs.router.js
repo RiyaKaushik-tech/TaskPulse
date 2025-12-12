@@ -9,7 +9,7 @@ router.get("/user", verifyUser, async (req, res, next) => {
   try {
     const userId = req.user.id;
     const events = await Event.find({ targets: userId })
-      .populate("actor", "name email profileImageUrl")
+      .populate("actor", "name email profilePicUrl")
       .populate("task", "title status")
       .sort({ createdAt: -1 })
       .limit(100);
@@ -24,7 +24,7 @@ router.get("/user", verifyUser, async (req, res, next) => {
 router.get("/admin", verifyUser, adminOnly, async (req, res, next) => {
   try {
     const events = await Event.find({})
-      .populate("actor", "name email profileImageUrl")
+      .populate("actor", "name email profilePicUrl")
       .populate("task", "title status")
       .populate("targets", "name email")
       .sort({ createdAt: -1 })

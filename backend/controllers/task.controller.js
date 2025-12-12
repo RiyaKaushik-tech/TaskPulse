@@ -189,13 +189,13 @@ export const getTask = async (req, res, next) => {
     if (req.user.role === "admin") {
       query = Task.find(filter).populate(
         "assignedTo",
-        "name email profileImageUrl"
+        "name email profilePicUrl"
       );
     } else {
       query = Task.find({
         ...filter,
         assignedTo: req.user.id,
-      }).populate("assignedTo", "name email profileImageUrl");
+      }).populate("assignedTo", "name email profilePicUrl");
     }
 
     // Apply sorting at database level
@@ -265,7 +265,7 @@ export const getTaskById = async (req, res, next) => {
 
     const task = await Task.findById(id).populate(
       "assignedTo",
-      "name email profileImageUrl"
+      "name email profilePicUrl"
     );
     if (!task) return next(ErrorHandler(404, "Task not found"));
 
@@ -447,7 +447,7 @@ export const updateTodoChecklist = async (req, res, next) => {
     const saved = await task.save();
     const populated = await Task.findById(saved._id).populate(
       "assignedTo",
-      "name email profileImageUrl profileImageUrl"
+      "name email profilePicUrl profilePicUrl"
     );
 
     return res

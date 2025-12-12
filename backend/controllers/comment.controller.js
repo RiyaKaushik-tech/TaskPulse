@@ -18,14 +18,14 @@ router.get("/tasks/:taskId", verifyUser, async (req, res) => {
       isDeleted: false,
       parentComment: null, // Only get top-level comments
     })
-      .populate("author", "name email profileImageUrl")
-      .populate("mentions", "name email profileImageUrl")
+      .populate("author", "name email profilePicUrl")
+      .populate("mentions", "name email profilePicUrl")
       .populate({
         path: "replies",
         match: { isDeleted: false },
         populate: [
-          { path: "author", select: "name email profileImageUrl" },
-          { path: "mentions", select: "name email profileImageUrl" },
+          { path: "author", select: "name email profilePicUrl" },
+          { path: "mentions", select: "name email profilePicUrl" },
         ],
       })
       .sort({ createdAt: -1 })
@@ -45,8 +45,8 @@ router.get("/tasks/:taskId", verifyUser, async (req, res) => {
 // Create a new comment
 router.post("/", verifyUser, async (req, res) => {
   try {
-    const { taskId, content, mentions, parentCommentId } = req.body;
-    const userId = req.user._id;
+    const { taskId, content,mentions, parentCommentId } = req.body;
+    const userId = req.user.id || req.user._id;
 
     if (!content || content.trim().length === 0) {
       return res
@@ -88,8 +88,8 @@ router.post("/", verifyUser, async (req, res) => {
     await comment.save();
 
     // Populate author and mentions
-    await comment.populate("author", "name email profileImageUrl");
-    await comment.populate("mentions", "name email profileImageUrl");
+    await comment.populate("author", "name email profilePicUrl");
+    await comment.populate("mentions", "name email profilePicUrl");
 
     // Update task
     if (parentCommentId) {
@@ -107,7 +107,10 @@ router.post("/", verifyUser, async (req, res) => {
     }
 
     // Get author info
-    const author = await User.findById(userId).select("name email");
+    const author = await User.findById(userId).select("name email profilePicUrl");
+    console.log("author info: ", author);
+    
+    
 
     // Create notifications for mentions
     if (mentionedUsers.length > 0) {
@@ -115,43 +118,44 @@ router.post("/", verifyUser, async (req, res) => {
 
       for (const mentionedUser of mentionedUsers) {
         // Create log entry
-        // const log = new Log({
-        //   actor: {
-        //     _id: userId,
-        //     name: author.name,
-        //     email: author.email,
-        //   },
-        //   task: {
-        //     _id: task._id,
-        //     title: task.title,
-        //   },
-        //   targets: [
-        //     {
-        //       _id: mentionedUser._id,
-        //       name: mentionedUser,
-        //     },
-        //   ],
-        //   type: "user_mentioned",
-        //   meta: {
-        //     commentId: comment._id,
-        //     commentContent: content.substring(0, 100),
-        //   },
-        // });
+        const log = new Log({
+            actor: {
+              _id: userId,
+              name: author?.name,
+              email: author?.email,
+            },
+          task: {
+            _id: task._id,
+            title: task.title,
+          },
+          targets: [
+            {
+              _id: mentionedUser._id,
+              name: mentionedUser,
+            },
+          ],
+          type: "user_mentioned",
+          meta: {
+            commentId: comment._id,
+            commentContent: content.substring(0, 100),
+          },
+        });
 
-        // await log.save();
+        await log.save();
 
         // Emit socket event
-        // if (io) {
-        //   io.to(`user:${mentionedUser._id}`).emit("notification:new", log);
-        //   io.emit("notification:new", log);
-        // }
+        if (io) {
+          io.to(`user:${mentionedUser._id}`).emit("notification:new", log);
+          io.emit("notification:new", log);
+        }
       }
     }
 
-    // Emit socket event for new comment
+    // Emit socket event for new comment (send plain object with populated fields)
     const io = req.app.get("io");
     if (io) {
-      io.to(`task:${taskId}`).emit("comment:new", comment);
+      const commentObj = comment.toObject();
+      io.to(`task:${taskId}`).emit("comment:new", commentObj);
     }
 
     res.status(201).json({
@@ -170,7 +174,7 @@ router.put("/:commentId", verifyUser, async (req, res) => {
   try {
     const { commentId } = req.params;
     const { content } = req.body;
-    const userId = req.user._id;
+    const userId = req.user.id || req.user._id;
 
     const comment = await Comment.findById(commentId);
     if (!comment) {
@@ -180,12 +184,12 @@ router.put("/:commentId", verifyUser, async (req, res) => {
     }
 
     // Check if user is the author
-if (comment?.author?.toString() !== userId?.toString()) {
-    return res.status(403).json({
+    if (comment.author.toString() !== userId.toString()) {
+      return res.status(403).json({
         success: false,
         message: "You can only edit your own comments"
-    });
-}
+      });
+    }
 
     if (!content || content.trim().length === 0) {
       return res
@@ -206,13 +210,14 @@ if (comment?.author?.toString() !== userId?.toString()) {
     comment.editedAt = new Date();
     await comment.save();
 
-    await comment.populate("author", "name email profileImageUrl");
-    await comment.populate("mentions", "name email profileImageUrl");
+    await comment.populate("author", "name email profilePicUrl");
+    await comment.populate("mentions", "name email profilePicUrl");
 
-    // Emit socket event
+    // Emit socket event (send plain object with populated fields)
     const io = req.app.get("io");
     if (io) {
-      io.to(`task:${comment.task}`).emit("comment:updated", comment);
+      const commentObj = comment.toObject();
+      io.to(`task:${comment.task}`).emit("comment:updated", commentObj);
     }
 
     res.status(200).json({
@@ -230,7 +235,7 @@ if (comment?.author?.toString() !== userId?.toString()) {
 router.delete("/:commentId", verifyUser, async (req, res) => {
   try {
     const { commentId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user.id || req.user._id;
 
     const comment = await Comment.findById(commentId);
     if (!comment) {
@@ -240,12 +245,12 @@ router.delete("/:commentId", verifyUser, async (req, res) => {
     }
 
     // Check if user is the author
-if (comment?.author?.toString() !== userId?.toString()) {
-    return res.status(403).json({
+    if (comment.author.toString() !== userId.toString()) {
+      return res.status(403).json({
         success: false,
         message: "You can only delete your own comments"
-    });
-}
+      });
+    }
     // Soft delete
     comment.isDeleted = true;
     await comment.save();
@@ -312,7 +317,7 @@ router.post("/:commentId/reaction", verifyUser, async (req, res) => {
     }
 
     await comment.save();
-    await comment.populate("reaction.user", "name email profileImageUrl");
+    await comment.populate("reaction.user", "name email profilePicUrl");
 
     // Emit socket event
     const io = req.app.get("io");

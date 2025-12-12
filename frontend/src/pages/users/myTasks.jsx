@@ -139,7 +139,7 @@ const MyTasks = () => {
                 progress={item.progress}
                 createdAt={item.createdAt}
                 dueDate={item.dueDate}
-                assignedTo={item.assignedTo?.map(u => u.profileImageUrl)}
+                assignedTo={item.assignedTo?.map(u => u.profilePicUrl)}
                 attachmentCount={item.attachments?.length || 0}
                 completedTodoCount={item.completedTodoCount || 0}
                 todoCheckList={item.todoCheckList || []} // match backend field name

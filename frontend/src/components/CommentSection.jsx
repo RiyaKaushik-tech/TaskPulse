@@ -81,7 +81,7 @@ const CommentSection = ({ taskId }) => {
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get(`/comments/task/${taskId}`);
+      const response = await axiosInstance.get(`/comments/tasks/${taskId}`);
       setComments(response.data.comments || []);
     } catch (error) {
       console.error("Error fetching comments:", error);
@@ -93,7 +93,7 @@ const CommentSection = ({ taskId }) => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axiosInstance.get("/users");
+      const response = await axiosInstance.get("/users/get-users");
       setUsers(response.data.users || []);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -213,6 +213,7 @@ const CommentSection = ({ taskId }) => {
 
   const renderComment = (comment, isReply = false) => {
     const isAuthor = comment.author?._id === currentUser?._id;
+              // console.log("comment:",comment);
     const isEditing = editingComment === comment._id;
 
     return (
@@ -221,18 +222,19 @@ const CommentSection = ({ taskId }) => {
         className={`${
           isReply ? "ml-12 mt-3" : "mt-4"
         } p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors`}
-      >
+        >
         <div className="flex gap-3">
           <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
-            {comment.author?.profileImageUrl ? (
+            {comment.author?.profilePicUrl ? (
               <img
-                src={comment.author.profileImageUrl}
+                src={comment.author.profilePicUrl}
                 alt={comment.author.name}
                 className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              comment.author?.name?.charAt(0) || "?"
-            )}
+                />
+              ) : (
+                comment.author?.name?.charAt(0) || "?"
+              )}
+              
           </div>
 
           <div className="flex-1">
@@ -430,9 +432,9 @@ const CommentSection = ({ taskId }) => {
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 transition-colors text-left"
                 >
                   <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
-                    {user.profileImageUrl ? (
+                    {user.profilePicUrl ? (
                       <img
-                        src={user.profileImageUrl}
+                        src={user.profilePicUrl}
                         alt={user.name}
                         className="w-full h-full rounded-full object-cover"
                       />

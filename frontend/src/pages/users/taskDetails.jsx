@@ -156,7 +156,7 @@ const TaskDetails = () => {
                       avatars={
                         (task.assignedTo || []).map(
                           (u) =>
-                            u?.profileImageUrl ||
+                            u?.profilePicUrl ||
                             u?.profilePicUrl ||
                             u?.profile_image ||
                             ""

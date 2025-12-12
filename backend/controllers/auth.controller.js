@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken"
 import path from "path"
 
 export const signUp = async (req, res, next) => {
-  const { name, email, password, profileImageUrl, adminJoinCode } = req.body
+  const { name, email, password, profilePicUrl, adminJoinCode } = req.body
 
   if (
     !name ||
@@ -39,7 +39,7 @@ export const signUp = async (req, res, next) => {
     name,
     email,
     password: hashedPassword,
-    profileImageUrl,
+    profilePicUrl,
     role,
   })
 
