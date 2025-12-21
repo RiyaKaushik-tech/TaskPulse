@@ -14,6 +14,20 @@ const userSchema = new Schema({
     },
 
     role: { type: String, enum: ["admin", "user"], default: "user" },
+    
+    // Attendance and Streak tracking
+    loginStreak: { type: Number, default: 0 },
+    lastLoginDate: { type: Date, default: null },
+    absentDays: { type: Number, default: 0 },
+    attendanceRecords: [{
+        date: { type: Date, required: true },
+        day: { type: String, required: true }, // e.g., "Monday", "Tuesday"
+        status: { type: String, enum: ["present", "absent"], required: true }
+    }],
 }, { timestamps: true });
+
+// Index for performance
+userSchema.index({ lastLoginDate: 1 });
+userSchema.index({ role: 1 });
 
 export default mongoose.model("User", userSchema);

@@ -94,6 +94,53 @@ export const SignIn = async (req, res, next) => {
       return next(ErrorHandler(400, "Wrong Credentials"))
     }
 
+    // --- Update Last Login Time for Attendance Tracking ---
+    const now = new Date();
+    const lastLogin = validUser.lastLoginDate ? new Date(validUser.lastLoginDate) : null;
+    const lastLoginDay = lastLogin ? new Date(lastLogin.getFullYear(), lastLogin.getMonth(), lastLogin.getDate()) : null;
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Only update if this is a new day login
+    const alreadyLoggedInToday = lastLoginDay && lastLoginDay.getTime() === today.getTime();
+
+    if (!alreadyLoggedInToday) {
+      // Calculate days difference for streak logic
+      const daysDiff = lastLoginDay ? Math.floor((today - lastLoginDay) / (1000 * 60 * 60 * 24)) : null;
+
+      if (daysDiff === null) {
+        // First login ever
+        validUser.loginStreak = 1;
+      } else if (daysDiff === 1) {
+        // Consecutive day - increment streak
+        validUser.loginStreak += 1;
+      } else if (daysDiff > 1) {
+        // Missed days - reset streak
+        validUser.loginStreak = 1;
+      }
+
+      // Update last login date (attendance record will be created by daily checker)
+      validUser.lastLoginDate = now;
+      await validUser.save();
+
+      // Emit real-time login notification
+      const io = req.app.get("io");
+      if (io) {
+        // Get all admins for real-time updates
+        const admins = await User.find({ role: "admin" }).select("_id");
+        const adminIds = admins.map((a) => String(a._id));
+
+        // Notify admins about user login
+        adminIds.forEach(adminId => {
+          io.to(`user:${adminId}`).emit("user:login", {
+            userId: String(validUser._id),
+            userName: validUser.name,
+            loginTime: now,
+            loginStreak: validUser.loginStreak
+          });
+        });
+      }
+    }
+
     const token = jwt.sign(
       { id: validUser._id, role: validUser.role },
       process.env.JWT_SECRET

@@ -9,6 +9,7 @@ import { Server as IOServer } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
 import checkOverdueTasks from "./utils/checkOverdueTasks.js";
+import checkUserAttendance from "./utils/checkUserAttendance.js";
 
 import authRouter from './routes/auth.router.js';
 import taskRouter from './routes/task.router.js';
@@ -145,9 +146,18 @@ server.listen(PORT, () => {
     checkOverdueTasks(io);
   }, 60 * 60 * 1000); // 1 hour
 
+  // Schedule attendance check every 24 hours (daily at midnight)
+  setInterval(() => {
+    console.log('📅 Running scheduled user attendance check...');
+    checkUserAttendance(io);
+  }, 24 * 60 * 60 * 1000); // 24 hours
+
   // Run once on startup
   console.log(' Running initial overdue task check...');
   checkOverdueTasks(io);
+  
+  console.log('📊 Running initial attendance check...');
+  checkUserAttendance(io);
 });
 
 // Export for testing or external use

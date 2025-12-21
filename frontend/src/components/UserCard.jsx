@@ -1,32 +1,31 @@
 
 import React from "react"
+import { IoFlameSharp, IoCheckmarkCircle, IoCloseCircle } from "react-icons/io5"
 
 const UserCard = ({ userInfo, onClick }) => {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left p-2 bg-white rounded-xl shadow-md shadow-gray-100 border border-gray-200/50 hover:shadow-lg transition-shadow"
+      className="w-full text-left p-4 bg-white rounded-xl shadow-md shadow-gray-100 border border-gray-200/50 hover:shadow-lg transition-all duration-200"
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img
-            src={userInfo?.profilePicUrl}
-            alt={userInfo?.name}
-            className="h-12 w-12 rounded-full object-cover border-2 border-white"
-          />
+      <div className="flex items-center gap-3 mb-4">
+        <img
+          src={userInfo?.profilePicUrl}
+          alt={userInfo?.name}
+          className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
+        />
 
-          <div className="">
-            <p className="text-lg font-medium">{userInfo?.name}</p>
-
-            <p className="text-sm text-gray-500">{userInfo?.email}</p>
-          </div>
+        <div className="flex-1">
+          <p className="text-lg font-semibold text-gray-800">{userInfo?.name}</p>
+          <p className="text-sm text-gray-500">{userInfo?.email}</p>
         </div>
       </div>
 
-      <div className="flex items-end gap-3 mt-5">
+      {/* Task Stats */}
+      <div className="flex items-center gap-2 mb-3">
         <StatCard
-          label="pending"
+          label="Pending"
           count={userInfo?.pendingTasks || 0}
           status="pending"
         />
@@ -42,6 +41,31 @@ const UserCard = ({ userInfo, onClick }) => {
           count={userInfo?.completedTasks || 0}
           status="completed"
         />
+      </div>
+
+      {/* Attendance Stats */}
+      <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+        <div className="flex items-center gap-1.5 flex-1">
+          <IoFlameSharp className="text-orange-500 text-base" />
+          <span className="text-xs font-medium text-gray-600">Streak:</span>
+          <span className="text-xs font-bold text-orange-600">{userInfo?.loginStreak || 0} days</span>
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-1">
+          <IoCheckmarkCircle className="text-green-500 text-base" />
+          <span className="text-xs font-medium text-gray-600">Present:</span>
+          <span className="text-xs font-bold text-green-600">
+            {userInfo?.attendanceRecords?.filter(r => r.status === "present").length || 0}
+          </span>
+        </div>
+
+        {userInfo?.absentDays > 0 && (
+          <div className="flex items-center gap-1.5 flex-1">
+            <IoCloseCircle className="text-red-500 text-base" />
+            <span className="text-xs font-medium text-gray-600">Absent:</span>
+            <span className="text-xs font-bold text-red-600">{userInfo?.absentDays}</span>
+          </div>
+        )}
       </div>
     </button>
   )

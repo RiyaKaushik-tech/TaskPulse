@@ -11,6 +11,7 @@ const eventSchema = new mongoose.Schema({
       "user_mentioned",
       "user_signup",
       "task_overdue",
+      "user_absent",
     ],
   },
   actor: {

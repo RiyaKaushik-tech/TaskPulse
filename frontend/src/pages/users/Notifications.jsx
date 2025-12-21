@@ -108,6 +108,17 @@ const Notifications = () => {
         return `${actorName} completed "${taskTitle}"`;
       case "user_mentioned":
         return `${actorName} mentioned you in "${taskTitle}"`;
+      case "user_absent":
+        if (event.actor) {
+          // Admin notification: user was marked absent
+          const userName = event.actor?.name || "A user";
+          const absentDay = event.meta?.absentDay || "today";
+          return `${userName} was marked absent on ${absentDay}`;
+        } else {
+          // User notification: you were marked absent
+          const absentDay = event.meta?.absentDay || "today";
+          return `You were marked absent on ${absentDay}. Please log in to maintain your streak!`;
+        }
       default:
         return `New notification`;
     }

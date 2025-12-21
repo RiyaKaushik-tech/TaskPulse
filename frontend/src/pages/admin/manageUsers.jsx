@@ -5,6 +5,7 @@ import { FaFileAlt } from "react-icons/fa"
 import UserCard from "../../components/UserCard"
 import toast from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
+import { useAttendanceUpdates } from "../../utils/useAttendanceUpdates"
 
 const ManageUsers = () => {
   const navigate = useNavigate()
@@ -22,7 +23,42 @@ const ManageUsers = () => {
     }
   }
 
+  // Handle real-time attendance updates
+  useAttendanceUpdates((data) => {
+    // Update the specific user in the list
+    setAllUsers(prevUsers => 
+      prevUsers.map(user => {
+        if (user._id === data.userId) {
+          // Handle login event
+          if (data.status === 'login') {
+            return { 
+              ...user, 
+              loginStreak: data.loginStreak,
+              lastLoginDate: data.loginTime
+            };
+          }
+          // Handle attendance update (present/absent)
+          return { 
+            ...user, 
+            loginStreak: data.loginStreak, 
+            absentDays: data.absentDays,
+            attendanceRecords: [
+              ...(user.attendanceRecords || []),
+              {
+                date: data.date,
+                day: data.day,
+                status: data.status
+              }
+            ]
+          };
+        }
+        return user;
+      })
+    );
+  });
+
   const handleDownloadReport = async () => {
+    const downloadToast = toast.loading("Downloading report...");
     try {
       const response = await axiosInstance.get("/report/export/user", {
         responseType: "blob",
@@ -45,7 +81,6 @@ const ManageUsers = () => {
     } catch (error) {
       toast.error(" Error downloading task-details report. Please try again!", { id: downloadToast })
       console.log("Error downloading user-details report: ", error)
-      toast.error("Error downloading user-details report. Please try again!")
     }
   }
 
