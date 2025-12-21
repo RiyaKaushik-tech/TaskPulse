@@ -119,21 +119,9 @@ router.post("/", verifyUser, async (req, res) => {
       for (const mentionedUser of mentionedUsers) {
         // Create log entry
         const log = new Log({
-            actor: {
-              _id: userId,
-              name: author?.name,
-              email: author?.email,
-            },
-          task: {
-            _id: task._id,
-            title: task.title,
-          },
-          targets: [
-            {
-              _id: mentionedUser._id,
-              name: mentionedUser,
-            },
-          ],
+          actor: userId,
+          task: task._id,
+          targets: [mentionedUser._id],
           type: "user_mentioned",
           meta: {
             commentId: comment._id,
@@ -142,6 +130,11 @@ router.post("/", verifyUser, async (req, res) => {
         });
 
         await log.save();
+
+        // Populate for socket emission
+        await log.populate("actor", "name email profilePicUrl");
+        await log.populate("targets", "name email profilePicUrl");
+        await log.populate("task", "title");
 
         // Emit socket event
         if (io) {

@@ -129,7 +129,7 @@ const CommentSection = ({ taskId }) => {
   const fetchUsers = async () => {
     try {
       const response = await axiosInstance.get("/users/get-users");
-      setUsers(response.data.users || []);
+      setUsers(response.data || []);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -142,14 +142,18 @@ const CommentSection = ({ taskId }) => {
     // Check for @ mentions
     const lastAtIndex = value.lastIndexOf("@");
     if (lastAtIndex !== -1) {
-      const searchTerm = value.substring(lastAtIndex + 1);
-      if (searchTerm.length > 0 && !searchTerm.includes(" ")) {
-        setMentionSearch(searchTerm);
+      const afterAt = value.substring(lastAtIndex + 1);
+      // Check if @ is followed by space or non-space characters
+      if (afterAt.length === 0 || (!afterAt.includes(" ") && /^[a-zA-Z0-9]*$/.test(afterAt))) {
+        // Show all users if just "@" or valid search term
+        if (afterAt.length === 0) {
+          setMentionSearch("");
+          setMentionSuggestions(users);
+        } else {
+          setMentionSearch(afterAt);
+          filterMentions(afterAt);
+        }
         setShowMentions(true);
-        filterMentions(searchTerm);
-      } else if (searchTerm.length === 0) {
-        setShowMentions(true);
-        setMentionSuggestions(users);
       } else {
         setShowMentions(false);
       }
