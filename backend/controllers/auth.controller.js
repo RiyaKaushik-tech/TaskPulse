@@ -104,20 +104,6 @@ export const SignIn = async (req, res, next) => {
     const alreadyLoggedInToday = lastLoginDay && lastLoginDay.getTime() === today.getTime();
 
     if (!alreadyLoggedInToday) {
-      // Calculate days difference for streak logic
-      const daysDiff = lastLoginDay ? Math.floor((today - lastLoginDay) / (1000 * 60 * 60 * 24)) : null;
-
-      if (daysDiff === null) {
-        // First login ever
-        validUser.loginStreak = 1;
-      } else if (daysDiff === 1) {
-        // Consecutive day - increment streak
-        validUser.loginStreak += 1;
-      } else if (daysDiff > 1) {
-        // Missed days - reset streak
-        validUser.loginStreak = 1;
-      }
-
       // Update last login date (attendance record will be created by daily checker)
       validUser.lastLoginDate = now;
       await validUser.save();
@@ -134,8 +120,7 @@ export const SignIn = async (req, res, next) => {
           io.to(`user:${adminId}`).emit("user:login", {
             userId: String(validUser._id),
             userName: validUser.name,
-            loginTime: now,
-            loginStreak: validUser.loginStreak
+            loginTime: now
           });
         });
       }

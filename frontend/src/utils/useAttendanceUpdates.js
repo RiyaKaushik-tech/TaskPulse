@@ -14,11 +14,11 @@ export const useAttendanceUpdates = (onUpdate) => {
     const handleAttendanceUpdate = (data) => {
       // Show toast notification based on status
       if (data.status === 'present') {
-        toast.success(`${data.userName || 'User'} marked present - Streak: ${data.loginStreak} days`, {
+        toast.success(`${data.userName || 'User'} marked present`, {
           duration: 3000,
         });
       } else if (data.status === 'absent') {
-        toast.error(`${data.userName || 'User'} marked absent - Streak broken`, {
+        toast.error(`${data.userName || 'User'} marked absent`, {
           duration: 4000,
         });
       }
@@ -31,7 +31,7 @@ export const useAttendanceUpdates = (onUpdate) => {
 
     const handleUserLogin = (data) => {
       // Show toast notification for user login
-      toast.success(`${data.userName || 'User'} logged in - Streak: ${data.loginStreak} days`, {
+      toast.success(`${data.userName || 'User'} logged in`, {
         duration: 2000,
       });
 

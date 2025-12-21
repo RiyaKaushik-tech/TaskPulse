@@ -1,6 +1,6 @@
 
 import React from "react"
-import { IoFlameSharp, IoCheckmarkCircle, IoCloseCircle } from "react-icons/io5"
+import { IoCheckmarkCircle, IoCloseCircle } from "react-icons/io5"
 
 const UserCard = ({ userInfo, onClick }) => {
   return (
@@ -46,12 +46,6 @@ const UserCard = ({ userInfo, onClick }) => {
       {/* Attendance Stats */}
       <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
         <div className="flex items-center gap-1.5 flex-1">
-          <IoFlameSharp className="text-orange-500 text-base" />
-          <span className="text-xs font-medium text-gray-600">Streak:</span>
-          <span className="text-xs font-bold text-orange-600">{userInfo?.loginStreak || 0} days</span>
-        </div>
-
-        <div className="flex items-center gap-1.5 flex-1">
           <IoCheckmarkCircle className="text-green-500 text-base" />
           <span className="text-xs font-medium text-gray-600">Present:</span>
           <span className="text-xs font-bold text-green-600">
@@ -59,13 +53,11 @@ const UserCard = ({ userInfo, onClick }) => {
           </span>
         </div>
 
-        {userInfo?.absentDays > 0 && (
-          <div className="flex items-center gap-1.5 flex-1">
-            <IoCloseCircle className="text-red-500 text-base" />
-            <span className="text-xs font-medium text-gray-600">Absent:</span>
-            <span className="text-xs font-bold text-red-600">{userInfo?.absentDays}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-1.5 flex-1">
+          <IoCloseCircle className="text-red-500 text-base" />
+          <span className="text-xs font-medium text-gray-600">Absent:</span>
+          <span className="text-xs font-bold text-red-600">{userInfo?.absentDays || 0}</span>
+        </div>
       </div>
     </button>
   )

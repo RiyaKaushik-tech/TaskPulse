@@ -56,7 +56,7 @@ export const exportTaskReport = async (req, res, next) => {
 
 export const exportUsersReport = async (req, res, next) => {
   try {
-    const users = await User.find().select("name email _id loginStreak absentDays attendanceRecords lastLoginDate").lean()
+    const users = await User.find().select("name email _id absentDays attendanceRecords lastLoginDate").lean()
 
     const userTasks = await Task.find().populate("assignedTo", "name email _id")
 
@@ -64,7 +64,6 @@ export const exportUsersReport = async (req, res, next) => {
 
     users.forEach((user) => {
       const presentDays = user.attendanceRecords?.filter(r => r.status === "present").length || 0;
-      const totalAttendanceDays = user.attendanceRecords?.length || 0;
       const lastLogin = user.lastLoginDate ? new Date(user.lastLoginDate).toLocaleString() : "Never";
       
       userTaskMap[user._id] = {
@@ -74,10 +73,8 @@ export const exportUsersReport = async (req, res, next) => {
         pendingTasks: 0,
         inProgressTasks: 0,
         completedTasks: 0,
-        loginStreak: user.loginStreak || 0,
         presentDays: presentDays,
         absentDays: user.absentDays || 0,
-        totalAttendanceDays: totalAttendanceDays,
         lastLogin: lastLogin,
       }
     })
@@ -102,49 +99,100 @@ export const exportUsersReport = async (req, res, next) => {
 
     const workbook = new excelJs.Workbook()
 
-    const worksheet = workbook.addWorksheet("User Task Report")
+    // Main Summary Sheet
+    const worksheet = workbook.addWorksheet("User Summary")
 
     worksheet.columns = [
       { header: "User Name", key: "name", width: 30 },
       { header: "Email", key: "email", width: 40 },
-      { header: "Total Assigned Tasks", key: "taskCount", width: 20 },
-      { header: "pending Tasks", key: "pendingTasks", width: 20 },
-      { header: "In Progress Tasks", key: "inProgressTasks", width: 20 },
-      { header: "Completed Tasks", key: "completedTasks", width: 20 },
-      { header: "Login Streak (Days)", key: "loginStreak", width: 20 },
-      { header: "Present Days", key: "presentDays", width: 20 },
-      { header: "Absent Days", key: "absentDays", width: 20 },
-      { header: "Total Attendance Days", key: "totalAttendanceDays", width: 20 },
+      { header: "Total Tasks", key: "taskCount", width: 15 },
+      { header: "Pending", key: "pendingTasks", width: 15 },
+      { header: "In Progress", key: "inProgressTasks", width: 15 },
+      { header: "Completed", key: "completedTasks", width: 15 },
+      { header: "Present Days", key: "presentDays", width: 15 },
+      { header: "Absent Days", key: "absentDays", width: 15 },
       { header: "Last Login", key: "lastLogin", width: 30 },
     ]
+
+    // Style header row
+    worksheet.getRow(1).font = { bold: true, size: 11 }
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    }
 
     Object.values(userTaskMap).forEach((user) => {
       worksheet.addRow(user)
     })
 
-    // Create a second sheet for detailed attendance records
-    const attendanceSheet = workbook.addWorksheet("Attendance Records")
+    // Create Present Records Sheet
+    const presentSheet = workbook.addWorksheet("Present Records")
     
-    attendanceSheet.columns = [
+    presentSheet.columns = [
       { header: "User Name", key: "userName", width: 30 },
       { header: "Email", key: "userEmail", width: 40 },
       { header: "Date", key: "date", width: 20 },
       { header: "Day", key: "day", width: 15 },
-      { header: "Status", key: "status", width: 15 },
     ]
 
-    // Add all attendance records
+    // Style header
+    presentSheet.getRow(1).font = { bold: true, size: 11 }
+    presentSheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF90EE90' }
+    }
+
+    // Add present records
     users.forEach((user) => {
       if (user.attendanceRecords && user.attendanceRecords.length > 0) {
-        user.attendanceRecords.forEach((record) => {
-          attendanceSheet.addRow({
-            userName: user.name,
-            userEmail: user.email,
-            date: new Date(record.date).toLocaleDateString(),
-            day: record.day,
-            status: record.status.charAt(0).toUpperCase() + record.status.slice(1),
+        user.attendanceRecords
+          .filter(record => record.status === "present")
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .forEach((record) => {
+            presentSheet.addRow({
+              userName: user.name,
+              userEmail: user.email,
+              date: new Date(record.date).toLocaleDateString(),
+              day: record.day,
+            })
           })
-        })
+      }
+    })
+
+    // Create Absent Records Sheet
+    const absentSheet = workbook.addWorksheet("Absent Records")
+    
+    absentSheet.columns = [
+      { header: "User Name", key: "userName", width: 30 },
+      { header: "Email", key: "userEmail", width: 40 },
+      { header: "Date", key: "date", width: 20 },
+      { header: "Day", key: "day", width: 15 },
+    ]
+
+    // Style header
+    absentSheet.getRow(1).font = { bold: true, size: 11 }
+    absentSheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFFF6B6B' }
+    }
+
+    // Add absent records
+    users.forEach((user) => {
+      if (user.attendanceRecords && user.attendanceRecords.length > 0) {
+        user.attendanceRecords
+          .filter(record => record.status === "absent")
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .forEach((record) => {
+            absentSheet.addRow({
+              userName: user.name,
+              userEmail: user.email,
+              date: new Date(record.date).toLocaleDateString(),
+              day: record.day,
+            })
+          })
       }
     })
 

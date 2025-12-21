@@ -32,15 +32,13 @@ const ManageUsers = () => {
           // Handle login event
           if (data.status === 'login') {
             return { 
-              ...user, 
-              loginStreak: data.loginStreak,
+              ...user,
               lastLoginDate: data.loginTime
             };
           }
           // Handle attendance update (present/absent)
           return { 
-            ...user, 
-            loginStreak: data.loginStreak, 
+            ...user,
             absentDays: data.absentDays,
             attendanceRecords: [
               ...(user.attendanceRecords || []),
@@ -58,8 +56,11 @@ const ManageUsers = () => {
   });
 
   const handleDownloadReport = async () => {
-    const downloadToast = toast.loading("Downloading report...");
+    const downloadToast = toast.loading("Preparing report with latest data...");
     try {
+      // Refresh user data before downloading
+      await getAllUsers();
+      
       const response = await axiosInstance.get("/report/export/user", {
         responseType: "blob",
       })
@@ -70,16 +71,17 @@ const ManageUsers = () => {
 
       link.href = url
 
-      link.setAttribute("download", "user_details.xlsx")
+      const timestamp = new Date().toISOString().split('T')[0];
+      link.setAttribute("download", `user_report_${timestamp}.xlsx`)
       document.body.appendChild(link)
 
       link.click()
 
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
-      toast.success(" Report downloaded successfully!", { id: downloadToast })
+      toast.success("Report downloaded successfully!", { id: downloadToast })
     } catch (error) {
-      toast.error(" Error downloading task-details report. Please try again!", { id: downloadToast })
+      toast.error("Error downloading report. Please try again!", { id: downloadToast })
       console.log("Error downloading user-details report: ", error)
     }
   }

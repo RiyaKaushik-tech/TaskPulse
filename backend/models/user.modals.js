@@ -15,8 +15,7 @@ const userSchema = new Schema({
 
     role: { type: String, enum: ["admin", "user"], default: "user" },
     
-    // Attendance and Streak tracking
-    loginStreak: { type: Number, default: 0 },
+    // Attendance tracking
     lastLoginDate: { type: Date, default: null },
     absentDays: { type: Number, default: 0 },
     attendanceRecords: [{

@@ -29,10 +29,14 @@ export async function checkUserAttendance(io) {
         ? new Date(lastLogin.getFullYear(), lastLogin.getMonth(), lastLogin.getDate())
         : null;
 
+      // Skip new users who have never logged in (don't mark as absent)
+      if (!lastLogin) {
+        console.log(`ℹ️ Skipping new user ${user.name} (${user.email}) - No login history yet`);
+        continue;
+      }
+
       // Calculate hours since last login
-      const hoursSinceLastLogin = lastLogin 
-        ? (now - lastLogin) / (1000 * 60 * 60) 
-        : null;
+      const hoursSinceLastLogin = (now - lastLogin) / (1000 * 60 * 60);
 
       // Check if user has already been marked for today
       const hasRecordToday = user.attendanceRecords.some(record => {
@@ -44,7 +48,7 @@ export async function checkUserAttendance(io) {
       // If no record for today, check attendance based on last login time
       if (!hasRecordToday) {
         // If user logged in within last 24 hours, mark present
-        if (hoursSinceLastLogin !== null && hoursSinceLastLogin <= 24) {
+        if (hoursSinceLastLogin <= 24) {
           user.attendanceRecords.push({
             date: today,
             day: todayDayName,
@@ -56,7 +60,7 @@ export async function checkUserAttendance(io) {
           console.log(`✅ Marked user ${user.name} (${user.email}) as present for ${todayDayName} - Last login: ${hoursSinceLastLogin.toFixed(2)} hours ago`);
         } 
         // If user hasn't logged in for more than 24 hours, mark absent
-        else if (hoursSinceLastLogin === null || hoursSinceLastLogin > 24) {
+        else if (hoursSinceLastLogin > 24) {
           // Mark today as absent
           user.attendanceRecords.push({
             date: today,
@@ -64,7 +68,6 @@ export async function checkUserAttendance(io) {
             status: "absent"
           });
           user.absentDays += 1;
-          user.loginStreak = 0; // Reset streak
           
           await user.save();
 
@@ -113,8 +116,7 @@ export async function checkUserAttendance(io) {
                 status: "absent",
                 date: today,
                 day: todayDayName,
-                absentDays: user.absentDays,
-                loginStreak: 0
+                absentDays: user.absentDays
               });
             });
 
@@ -125,8 +127,7 @@ export async function checkUserAttendance(io) {
               date: today,
               day: todayDayName,
               absentDays: user.absentDays,
-              loginStreak: 0,
-              message: "You were marked absent. Please log in to maintain your streak!"
+              message: "You were marked absent. Please log in regularly!"
             });
           }
 

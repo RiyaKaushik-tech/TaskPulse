@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
-import { IoFlameSharp, IoCheckmarkCircle, IoCloseCircle, IoCalendarOutline } from "react-icons/io5";
+import { IoCheckmarkCircle, IoCloseCircle, IoCalendarOutline } from "react-icons/io5";
 import { useAttendanceUpdates } from "../../utils/useAttendanceUpdates";
 
 // User details page that fetches real data by id
@@ -20,14 +20,12 @@ const UserDetails = () => {
       if (data.status === 'login') {
         setUserInfo(prev => ({
           ...prev,
-          loginStreak: data.loginStreak,
           lastLoginDate: data.loginTime
         }));
       } else {
         // Handle attendance update (present/absent)
         setUserInfo(prev => ({
           ...prev,
-          loginStreak: data.loginStreak,
           absentDays: data.absentDays,
           attendanceRecords: [
             ...(prev.attendanceRecords || []),
@@ -145,13 +143,7 @@ const UserDetails = () => {
                     Attendance Statistics
                   </h2>
                   
-                  <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 text-center">
-                      <IoFlameSharp className="text-orange-500 text-3xl mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-orange-600">{userInfo?.loginStreak || 0}</p>
-                      <p className="text-sm text-gray-600 font-medium mt-1">Day Streak</p>
-                    </div>
-                    
+                  <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 text-center">
                       <IoCheckmarkCircle className="text-green-500 text-3xl mx-auto mb-2" />
                       <p className="text-2xl font-bold text-green-600">
