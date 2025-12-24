@@ -445,9 +445,9 @@ export const summarizeTaskComments = async (req, res, next) => {
       return next(ErrorHandler(403, "You don't have access to this task"));
     }
 
-    // Fetch comments
-    const comments = await Comment.find({ taskId })
-      .populate("userId", "name email")
+    // Fetch comments (match schema: task + author)
+    const comments = await Comment.find({ task: taskId, isDeleted: false })
+      .populate("author", "name email")
       .sort({ createdAt: 1 })
       .lean();
 
@@ -455,7 +455,7 @@ export const summarizeTaskComments = async (req, res, next) => {
       return res.status(200).json({
         success: true,
         message: "No comments to summarize",
-        data: { summary: "This task has no comments yet." },
+        data: { summary: "This task has no comments yet.", commentCount: 0, taskId },
       });
     }
 

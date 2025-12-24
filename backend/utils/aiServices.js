@@ -351,18 +351,35 @@ export const summarizeComments = async (comments) => {
 
   // Format comments into readable text
   const commentsText = comments
-    .map((c, i) => `Comment ${i + 1} by ${c.userId?.name || "User"}: ${c.content}`)
+    .map((c, i) => `Comment ${i + 1} by ${c.author?.name || "User"}: ${c.content}`)
     .join("\n\n");
 
-  const response = await client.summarize({
-    text: commentsText,
-    length: "medium",
-    format: "paragraph",
-    model: "summarize-xlarge",
-    extractiveness: "medium",
-  });
+  try {
+    const response = await client.summarize({
+      text: commentsText,
+      length: "medium",
+      format: "paragraph",
+      model: "summarize-xlarge",
+      extractiveness: "medium",
+    });
 
-  return response.summary;
+    // Cohere SDK returns { id, summary, ... }
+    if (response?.summary) return response.summary;
+    // Some SDK versions nest under .summaries[0].text
+    if (Array.isArray(response?.summaries) && response.summaries[0]?.text) {
+      return response.summaries[0].text;
+    }
+    // Unexpected shape: fall through to fallback summarization
+  } catch (err) {
+    console.warn("Cohere summarize failed, using fallback:", err?.message || err);
+  }
+
+  // Fallback: simple heuristic summary
+  const firstLines = comments
+    .map((c) => `- ${c.author?.name || "User"}: ${c.content}`)
+    .slice(0, 6)
+    .join("\n");
+  return `Discussion overview (fallback):\n${firstLines}\n\nSummary: ${comments.length} comments discussed key points above.`;
 };
 
 /**
