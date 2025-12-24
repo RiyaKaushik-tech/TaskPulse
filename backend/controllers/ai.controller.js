@@ -207,7 +207,8 @@ export const createReport = async (req, res, next) => {
       });
     }
 
-    const report = await generateReport(tasks, reportType);
+    // Generate simple report (no external AI dependency)
+    const report = generateSimpleReport(tasks, reportType);
 
     res.status(200).json({
       success: true,
@@ -221,11 +222,6 @@ export const createReport = async (req, res, next) => {
     });
   } catch (error) {
     console.error("Error in createReport:", error);
-    
-    if (error.message.includes("not configured")) {
-      return next(ErrorHandler(503, "AI report generation is currently unavailable"));
-    }
-    
     return next(ErrorHandler(500, "Failed to generate report"));
   }
 };
@@ -344,6 +340,10 @@ export const createInsights = async (req, res, next) => {
 export const smartSearch = async (req, res, next) => {
   try {
     const { query, limit = 10 } = req.body;
+
+    if (!query || String(query).trim().length < 2) {
+      return next(ErrorHandler(400, "Search query is required (min 2 characters)"));
+    }
     const userId = req.user?.id;
 
     if (!userId) {
@@ -378,20 +378,39 @@ export const smartSearch = async (req, res, next) => {
       });
     }
 
-    // Generate embeddings for tasks if not already present
-    const tasksWithEmbeddings = await Promise.all(
-      tasks.map(async (task) => {
-        if (!task.embedding) {
-          const text = `${task.title} ${task.description} ${task.tags?.join(" ") || ""}`;
-          const embedding = await generateEmbedding(text);
-          return { ...task, embedding };
-        }
-        return task;
+    // Keyword-based search (no external embedding dependency)
+    const queryLower = query.toLowerCase();
+    const queryWords = queryLower.split(/\s+/).filter(Boolean);
+    
+    const results = tasks
+      .map(task => {
+        const title = (task.title || "").toLowerCase();
+        const desc = (task.description || "").toLowerCase();
+        const tags = (task.tags || []).map(t => t.toLowerCase()).join(" ");
+        const text = `${title} ${desc} ${tags}`;
+        
+        // Calculate match score
+        let score = 0;
+        if (title.includes(queryLower)) score += 10;
+        if (desc.includes(queryLower)) score += 5;
+        if (tags.includes(queryLower)) score += 7;
+        
+        // Bonus for individual word matches
+        queryWords.forEach(word => {
+          if (title.includes(word)) score += 3;
+          if (desc.includes(word)) score += 2;
+          if (tags.includes(word)) score += 2;
+        });
+        
+        return { task, score };
       })
-    );
-
-    // Perform semantic search
-    const results = await semanticTaskSearch(query, tasksWithEmbeddings);
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map(item => ({
+        ...item.task,
+        similarityScore: Math.min(item.score / 15, 1) // Normalize to 0-1
+      }));
 
     res.status(200).json({
       success: true,
@@ -409,7 +428,7 @@ export const smartSearch = async (req, res, next) => {
       return next(ErrorHandler(503, "AI smart search is currently unavailable"));
     }
     
-    return next(ErrorHandler(500, "Failed to perform smart search"));
+    return next(ErrorHandler(500, error.message || "Failed to perform smart search"));
   }
 };
 
@@ -598,6 +617,58 @@ export const checkAIStatus = async (req, res, next) => {
 };
 
 // Export all controller functions
+/**
+ * Simple report generator (no external AI dependency)
+ */
+function generateSimpleReport(tasks, reportType = "weekly") {
+  const now = new Date();
+  const statusCounts = { pending: 0, "in-progress": 0, completed: 0 };
+  const priorityCounts = { low: 0, medium: 0, high: 0 };
+  let overdueTasks = 0;
+  let completedTasks = 0;
+
+  tasks.forEach(task => {
+    statusCounts[task.status] = (statusCounts[task.status] || 0) + 1;
+    priorityCounts[task.priority] = (priorityCounts[task.priority] || 0) + 1;
+    if (task.status === "completed") completedTasks++;
+    if (task.dueDate && new Date(task.dueDate) < now && task.status !== "completed") {
+      overdueTasks++;
+    }
+  });
+
+  const completionRate = tasks.length > 0 ? ((completedTasks / tasks.length) * 100).toFixed(1) : 0;
+
+  return `# ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Task Report
+
+**Generated:** ${now.toLocaleDateString()} ${now.toLocaleTimeString()}
+
+## Executive Summary
+- **Total Tasks:** ${tasks.length}
+- **Completed:** ${completedTasks} (${completionRate}%)
+- **Overdue:** ${overdueTasks}
+- **Report Type:** ${reportType}
+
+## Status Breakdown
+- **Pending:** ${statusCounts.pending}
+- **In Progress:** ${statusCounts["in-progress"]}
+- **Completed:** ${statusCounts.completed}
+
+## Priority Distribution
+- **High Priority:** ${priorityCounts.high}
+- **Medium Priority:** ${priorityCounts.medium}
+- **Low Priority:** ${priorityCounts.low}
+
+## Key Metrics
+- **Completion Rate:** ${completionRate}%
+- **Pending Tasks:** ${statusCounts.pending}
+- **Overdue Tasks:** ${overdueTasks}
+
+## Recommendations
+${completionRate < 50 ? "- Focus on completing more tasks to improve completion rate\n" : ""}${overdueTasks > 0 ? "- Address overdue tasks immediately\n" : ""}${priorityCounts.high > 5 ? "- Consider prioritizing high-priority tasks\n" : ""}${statusCounts.pending > tasks.length * 0.5 ? "- Start working on pending tasks to reduce backlog\n" : "- Great progress! Keep maintaining this pace!\n"}
+---
+*Report generated by TaskPulse*`;
+}
+
 export default {
   suggestTask,
   generateSubtasksList,

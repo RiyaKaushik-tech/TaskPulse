@@ -2,6 +2,7 @@ import Groq from "groq-sdk";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { HfInference } from "@huggingface/inference";
 import { CohereClient } from "cohere-ai";
+import fetch from "node-fetch";
 
 /**
  * AI SERVICES UTILITY
@@ -142,7 +143,7 @@ export const generateReport = async (tasks, reportType = "weekly") => {
   const client = initGemini();
   if (!client) throw new Error("Gemini API not configured");
 
-  const model = client.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = client.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
   const tasksSummary = tasks.map(t => ({
     title: t.title,
@@ -181,7 +182,7 @@ export const analyzeTaskPriority = async (taskData) => {
   const client = initGemini();
   if (!client) throw new Error("Gemini API not configured");
 
-  const model = client.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = client.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
   const prompt = `Analyze this task and recommend priority level:
 
@@ -223,7 +224,7 @@ export const generateInsights = async (data) => {
   const client = initGemini();
   if (!client) throw new Error("Gemini API not configured");
 
-  const model = client.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = client.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
   const prompt = `Analyze this task management performance data and provide actionable insights:
 
@@ -254,8 +255,17 @@ export const initHuggingFace = () => {
   }
   
   if (!hfClient) {
-    hfClient = new HfInference(process.env.HUGGINGFACE_API_KEY);
-    console.log("✅ Hugging Face client initialized");
+    // Prefer Router base URL to avoid deprecated api-inference.huggingface.co
+    try {
+      hfClient = new HfInference({
+        accessToken: process.env.HUGGINGFACE_API_KEY,
+        baseUrl: "https://router.huggingface.co",
+      });
+    } catch (_) {
+      // Fallback to legacy signature (library differences between versions)
+      hfClient = new HfInference(process.env.HUGGINGFACE_API_KEY);
+    }
+    console.log("✅ Hugging Face client initialized (router.huggingface.co)");
   }
   
   return hfClient;
@@ -270,12 +280,25 @@ export const generateEmbedding = async (text) => {
   const client = initHuggingFace();
   if (!client) throw new Error("Hugging Face API not configured");
 
+  if (typeof text !== "string" || !text.trim()) {
+    throw new Error("Embedding input text is required");
+  }
+
+  // Use SDK featureExtraction against Router baseUrl configured in initHuggingFace
   const response = await client.featureExtraction({
     model: "sentence-transformers/all-MiniLM-L6-v2",
     inputs: text,
   });
 
-  return response;
+  // Normalize to flat number[] regardless of SDK shape (number[] | number[][])
+  let vector = response;
+  if (Array.isArray(response) && Array.isArray(response[0])) {
+    vector = response[0];
+  }
+  if (!Array.isArray(vector)) {
+    throw new Error("Invalid embedding response shape");
+  }
+  return vector.map((v) => Number(v));
 };
 
 /**
@@ -309,9 +332,22 @@ export const semanticTaskSearch = async (query, tasks) => {
  * @returns {number} - Similarity score (0-1)
  */
 function cosineSimilarity(vecA, vecB) {
-  const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
-  const magnitudeA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0));
-  const magnitudeB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0));
+  if (!Array.isArray(vecA) || !Array.isArray(vecB)) return 0;
+  const len = Math.min(vecA.length, vecB.length);
+  if (!len) return 0;
+  let dotProduct = 0;
+  let magA = 0;
+  let magB = 0;
+  for (let i = 0; i < len; i++) {
+    const a = Number(vecA[i]) || 0;
+    const b = Number(vecB[i]) || 0;
+    dotProduct += a * b;
+    magA += a * a;
+    magB += b * b;
+  }
+  const magnitudeA = Math.sqrt(magA);
+  const magnitudeB = Math.sqrt(magB);
+  if (magnitudeA === 0 || magnitudeB === 0) return 0;
   return dotProduct / (magnitudeA * magnitudeB);
 }
 
