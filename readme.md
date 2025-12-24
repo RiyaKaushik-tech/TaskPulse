@@ -1,6 +1,28 @@
-# TaskPulse - Task Management System
+# TaskPulse - AI-Powered Task Management System
 
-A comprehensive task management and collaboration platform with real-time notifications, comment system, and admin analytics.
+A comprehensive task management and collaboration platform with **8 AI-powered features**, real-time notifications, comment system, and admin analytics.
+
+## 🤖 **NEW: AI Features**
+
+✨ **Task Intelligence**
+- **AI Task Suggestions** - Generate complete tasks from brief descriptions (Groq)
+- **Smart Subtask Generator** - Automatically break down complex tasks (Groq)
+- **Priority Analysis** - AI-recommended task prioritization (Gemini)
+
+✨ **Advanced Search & Analytics**
+- **Semantic Search** - Find tasks by meaning, not just keywords (Hugging Face)
+- **AI Report Generator** - Automated weekly/monthly performance reports (Gemini)
+- **Performance Insights** - Team analytics and recommendations (Gemini)
+
+✨ **Communication Enhancement**
+- **Comment Summarizer** - Condense long discussion threads (Cohere)
+- **Daily Digest** - AI-powered activity summaries (Cohere)
+
+📚 **[Read the Complete AI Features Guide →](AI_FEATURES_GUIDE.md)**
+
+**Quick Setup:** [5-Minute Quick Start →](QUICK_START.md)
+
+---
 
 ## Features
 
@@ -10,24 +32,28 @@ A comprehensive task management and collaboration platform with real-time notifi
 - Set priorities, deadlines, and status tracking
 - Tag-based organization
 - Task filtering and search
+- **NEW:** AI-assisted task creation
 
 ✅ **Real-time Collaboration**
 - Live comment system with @mentions
 - Real-time notifications via Socket.io
 - User presence and activity tracking
 - Comment reactions (emojis)
+- **NEW:** AI comment summarization
 
 ✅ **Admin Dashboard**
 - Activity logs and audit trails
 - User management
 - Task analytics and statistics
 - Bulk operations
+- **NEW:** AI-generated reports and insights
 
 ✅ **User Features**
 - Personalized dashboard
 - Task notifications and reminders
 - User profiles with task history
 - Read receipts and notification management
+- **NEW:** Semantic task search
 
 ## Tech Stack
 

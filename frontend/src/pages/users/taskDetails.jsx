@@ -7,6 +7,7 @@ import AvatarGroup from "../../components/AvatarGroup.jsx";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import toast from "react-hot-toast";
 import CommentSection from "../../components/CommentSection.jsx";
+import AICommentSummarizer from "../../components/AICommentSummarizer.jsx";
 
 const TaskDetails = () => {
   const { id } = useParams();
@@ -256,6 +257,16 @@ const TaskDetails = () => {
             </div>
           </div>
         )}
+        
+        {/* AI Comment Summarizer */}
+        {task && (
+          <AICommentSummarizer 
+            taskId={id} 
+            commentCount={task.commentCount || 0}
+            compact={false}
+          />
+        )}
+        
         <CommentSection taskId={id}/>
       </div>
     </DashboardLayout>

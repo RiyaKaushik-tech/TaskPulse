@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom"
 import RecentTasks from "../../components/RecentTask"
 import CustomPieChart from "../../components/CustomPieChart"
 import CustomBarChart from "../../components/CustomBarGraph"
+import AIReportGenerator from "../../components/AIReportGenerator"
+import AISmartSearch from "../../components/AISmartSearch"
 
 const COLORS = ["#FF6384", "#36A2EB", "#FFCE56"]
 
@@ -133,6 +135,18 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+
+        {/* AI Features Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <AISmartSearch
+            onSelectTask={(task) => {
+              navigate(`/admin/create-task`, { state: { taskId: task._id } });
+            }}
+            compact={false}
+          />
+
+          <AIReportGenerator compact={false} />
+        </div>
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

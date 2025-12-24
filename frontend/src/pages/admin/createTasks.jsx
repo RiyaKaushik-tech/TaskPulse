@@ -15,6 +15,8 @@ import Modal from "../../components/Modal"
 import DeleteAlert from "../../components/DeleteAlert"
 import FileUploader from "../../components/FileUploader";
 import AddTagsInput from "../../components/AddTagsInput";
+import AITaskSuggestions from "../../components/AITaskSuggestions";
+import AISubtaskGenerator from "../../components/AISubtaskGenerator";
 
 const CreateTask = () => {
   const [error,setError] = useState("")
@@ -303,6 +305,23 @@ const CreateTask = () => {
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
               
+              {/* AI Task Suggestions - Only show when creating new task */}
+              {!taskId && (
+                <AITaskSuggestions
+                  onApply={(suggestions) => {
+                    setTaskData({
+                      ...taskData,
+                      title: suggestions.title,
+                      description: suggestions.description,
+                      tags: suggestions.tags || [],
+                      priority: suggestions.priority || "medium",
+                    });
+                  }}
+                  disabled={loading}
+                />
+              )}
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Task Title <span className="text-red-500">*</span>
                 </label>
@@ -382,9 +401,25 @@ const CreateTask = () => {
               </div>
 
               <div className="mt-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   TODO Checklist
                 </label>
+
+                {/* AI Subtask Generator */}
+                <div className="mb-3">
+                  <AISubtaskGenerator
+                    taskTitle={taskData.title}
+                    taskDescription={taskData.description}
+                    onApply={(subtasks) => {
+                      const combinedList = [
+                        ...(taskData.todoCheckList || []),
+                        ...subtasks,
+                      ];
+                      handleValueChange("todoCheckList", combinedList);
+                    }}
+                    compact={true}
+                  />
+                </div>
 
                 <TodoListInput
                   todoList={taskData?.todoCheckList}
@@ -442,7 +477,7 @@ const CreateTask = () => {
                   {taskId ? "UPDATE TASK" : "CREATE TASK"}
                 </button>
               </div>
-            {/* </div> */}
+             </div> 
           </form>
         </div>
       </div>
