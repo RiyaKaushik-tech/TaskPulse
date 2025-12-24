@@ -8,28 +8,29 @@ const TodoListInput = ({ todoList, setTodoList }) => {
 
   const handleAddOption = () => {
     if (option.trim() !== "") {
-      setTodoList([...todoList, option.trim()])
+      // Keep simple strings for manual entries; parent will normalize
+      setTodoList([...(todoList || []), option.trim()])
       setOption("")
     }
   }
 
   const handleDeleteOption = (index) => {
-    const updatedArray = todoList.filter((_, i) => i !== index)
+    const updatedArray = (todoList || []).filter((_, i) => i !== index)
     setTodoList(updatedArray)
   }
 
   return (
     <div>
-      {todoList.map((item, index) => (
+      {(todoList || []).map((item, index) => (
         <div
-          key={item}
+          key={index}
           className="flex items-center justify-between bg-gray-50 border-gray-100 px-3 py-2 rounded-md mb-3 mt-2"
         >
           <p className="text-sm text-black">
             <span className="text-sm text-gray-400 font-semibold mr-2">
               {index < 9 ? `0${index + 1}` : index + 1}
             </span>
-            {item}
+            {typeof item === "string" ? item : item?.text ?? ""}
           </p>
 
           <button
