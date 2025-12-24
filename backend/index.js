@@ -18,6 +18,8 @@ import reportRouter from './routes/reportRouter.js';
 import uploadsRouter from './routes/uploads.route.js';
 import logsRouter from "./routes/logs.router.js";
 import commentRouter from "./controllers/comment.controller.js";
+import aiRouter from './routes/ai.router.js';
+import { initializeAllAIServices } from './utils/aiServices.js';
 
 const __filename__ = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename__);
@@ -109,7 +111,8 @@ app.use('/api/tasks', taskRouter);
 app.use('/api/report', reportRouter);
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/logs', logsRouter);
-app.use('/api/comments',commentRouter)
+app.use('/api/comments', commentRouter);
+app.use('/api/ai', aiRouter);
 
 // --- MongoDB connect with retry ---
 const connectWithRetry = (delay = 3000) => {
@@ -139,6 +142,9 @@ server.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`🌐 CORS allowed origin: ${CORS_ORIGIN}`);
   console.log(`🔌 Socket.IO ready for connections`);
+  
+  // Initialize AI services
+  initializeAllAIServices();
 
   // Schedule overdue task check every hour
   setInterval(() => {

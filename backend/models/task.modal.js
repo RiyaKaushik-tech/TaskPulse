@@ -37,6 +37,12 @@ const taskSchema = new Schema(
 
     overdueNotified: { type: Boolean, default: false },
 
+    // AI-related fields
+    aiGenerated: { type: Boolean, default: false }, // Was this task created with AI suggestions?
+    suggestedPriority: { type: String, enum: ["low", "medium", "high"] }, // AI-recommended priority
+    estimatedTimeHours: { type: Number }, // AI-estimated time to complete (in hours)
+    embedding: [{ type: Number }], // Vector embedding for semantic search
+
     comments: [
       {
         type: Schema.Types.ObjectId,
