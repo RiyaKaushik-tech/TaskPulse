@@ -111,7 +111,7 @@ const AIReportGenerator = ({ compact = false }) => {
   }
 
   return (
-    <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+    <div className="mb-6 p-4 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
       <div className="flex items-center gap-2 mb-3">
         <FaFileAlt className="text-blue-600 dark:text-blue-400" />
         <h3 className="font-semibold text-gray-800 dark:text-gray-200">
@@ -119,7 +119,7 @@ const AIReportGenerator = ({ compact = false }) => {
         </h3>
       </div>
 
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+      <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-4">
         Generate comprehensive reports with AI-powered insights and analytics.
       </p>
 

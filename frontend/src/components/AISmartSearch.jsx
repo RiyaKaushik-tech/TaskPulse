@@ -158,7 +158,7 @@ const AISmartSearch = ({ onSelectTask, compact = false }) => {
   }
 
   return (
-    <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-700">
+    <div className="mb-6 p-4 bg-linear-to-r from-indigo-700 to-purple-500 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-700">
       <div className="flex items-center gap-2 mb-3">
         <FaBrain className="text-indigo-600 dark:text-indigo-400" />
         <h3 className="font-semibold text-gray-800 dark:text-gray-200">
@@ -166,7 +166,7 @@ const AISmartSearch = ({ onSelectTask, compact = false }) => {
         </h3>
       </div>
 
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+      <p className="text-sm font-medium text-gray-600 dark:text-gray-200 mb-3">
         Search tasks by meaning, not just keywords. Try: "urgent database issues" or "frontend bugs"
       </p>
 
@@ -179,17 +179,17 @@ const AISmartSearch = ({ onSelectTask, compact = false }) => {
             onChange={(e) => setQuery(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && !loading && handleSearch()}
             placeholder="Describe what you're looking for..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                     bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200
+            className="w-full pl-10 pr-4 py-2 border font-extrabold border-gray-300 dark:border-gray-600 rounded-lg 
+                     bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-400
                      focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
         <button
           onClick={handleSearch}
           disabled={loading || !query.trim()}
-          className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg
                    flex items-center gap-2 transition-colors
-                   disabled:opacity-50 disabled:cursor-not-allowed"
+                   disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>

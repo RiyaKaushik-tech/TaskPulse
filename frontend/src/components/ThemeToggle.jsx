@@ -53,9 +53,9 @@ const ThemeToggle = () => {
         onClick={() => setShowDropdown(!showDropdown)}
         className="p-2 rounded-lg transition-colors duration-200"
         style={{
-          backgroundColor: "var(--bg-tertiary)",
-          color: "var(--text-primary)",
-          border: "1px solid var(--border-color)",
+          // backgroundColor: "var(--bg-tertiary)",
+          // color: "var(--text-primary)",
+          // border: "0.5px solid var(--border-color)",
         }}
         title="Toggle theme"
         aria-label="Theme selector"

@@ -40,9 +40,9 @@ const Navbar = ({ activeMenu }) => {
           )}
         </button>
       </div>
-      <div className="flex justify-items-center">
-        <img src="/logo.png" alt="logo" className="h-14 w-40 absolute right-24 top-1"/>
-      </div>
+      {/* <div className="flex">
+        <img src="/logo.png" alt="logo" className="h-16 w-64 absolute left-4 top-0"/>
+      </div> */}
 
       <div className="flex items-center gap-4">
         {/* {console.log("Rendering bell - isAdmin:", isAdmin)} */}
