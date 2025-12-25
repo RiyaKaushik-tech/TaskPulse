@@ -20,9 +20,18 @@ import ActivityLogs from "./pages/admin/ActivityLogs";
 import { useSelector } from "react-redux"
 import { initSocket } from "./utils/socket.js"
 import { Toaster } from "react-hot-toast"
+import "./theme.css"
 
 function App() {
-   const user = useSelector((state) => state.user);
+   const user = useSelector((state) => state.user);   const { activeTheme } = useSelector((state) => state.theme);
+  useEffect(() => {
+    const htmlElement = document.documentElement;
+    if (activeTheme === "dark") {
+      htmlElement.setAttribute("data-theme", "dark");
+    } else {
+      htmlElement.removeAttribute("data-theme");
+    }
+  }, [activeTheme]);
 
   useEffect(() => {
     if (user?.token) {
@@ -30,7 +39,13 @@ function App() {
     }
   }, [user?.token]);
   return (
-   <div>
+     <div
+          style={{
+            backgroundColor: "var(--bg-primary)",
+            color: "var(--text-primary)",
+            minHeight: "100vh"
+          }}
+        >
     <BrowserRouter>
     <ErrorBoundary>
       <Routes>

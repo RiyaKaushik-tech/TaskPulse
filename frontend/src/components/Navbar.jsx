@@ -4,6 +4,7 @@ import { MdClose, MdMenu } from "react-icons/md";
 import SideMenu from "./SideMenu";
 import UserNotificationBell from "./userNotifications";
 import AdminNotificationBell from "./adminNotification";
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = ({ activeMenu }) => {
   const [openSideMenu, setOpenSideMenu] = useState(false);
@@ -16,10 +17,20 @@ const Navbar = ({ activeMenu }) => {
 
 
   return (
-    <div className="bg-white shadow-sm sticky top-0 z-10 p-4 flex items-center justify-between">
+    <div
+      className="shadow-sm sticky top-0 z-10 p-4 flex items-center justify-between"
+      style={{
+        backgroundColor: "var(--navbar-bg)",
+        borderBottom: "1px solid var(--navbar-border)",
+      }}
+    >
       <div className="flex items-center space-x-4">
         <button
-          className="p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 transition-colors lg:hidden"
+          className="p-2 rounded-md transition-colors lg:hidden"
+          style={{
+            color: "var(--text-primary)",
+            backgroundColor: "var(--bg-tertiary)",
+          }}
           onClick={() => setOpenSideMenu(!openSideMenu)}
         >
           {openSideMenu ? (
@@ -29,29 +40,38 @@ const Navbar = ({ activeMenu }) => {
           )}
         </button>
       </div>
-      
       <div className="flex justify-items-center">
-        <img src="/logo.png" alt="logo" className="h-14 w-40 absolute right-12 top-1"/>
+        <img src="/logo.png" alt="logo" className="h-14 w-40 absolute right-24 top-1"/>
       </div>
 
       <div className="flex items-center gap-4">
         {/* {console.log("Rendering bell - isAdmin:", isAdmin)} */}
+      <div className="flex absolute right-12 ">
+        <ThemeToggle />
+      </div>
         {isAdmin ? <AdminNotificationBell /> : <UserNotificationBell />}
       </div>
 
       {openSideMenu && (
         <div className="fixed inset-0 z-40 flex lg:hidden">
-          <div className="relative z-50 w-72 h-full bg-white shadow-xl">
+          <div
+            className="relative z-50 w-72 h-full shadow-xl"
+            style={{
+              backgroundColor: "var(--sidebar-bg)",
+              borderRight: "1px solid var(--border-color)",
+            }}
+          >
             <button
-              className="absolute top-4 right-4 p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-md transition-colors"
+              style={{
+                color: "var(--text-primary)",
+                backgroundColor: "var(--bg-tertiary)",
+              }}
               onClick={() => setOpenSideMenu(false)}
             >
               <MdClose className="text-2xl" />
             </button>
-
-            <div className="pt-16">
-              <SideMenu activeMenu={activeMenu} />
-            </div>
+            <SideMenu activeMenu={activeMenu} />
           </div>
         </div>
       )}

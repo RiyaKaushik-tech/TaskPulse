@@ -64,9 +64,21 @@ const SideMenu = ({ activeMenu }) => {
   }, [currentUser])
 
   return (
-    <div className="w-64 p-6 h-full flex flex-col lg:border-r lg:border-gray-200">
+    <div
+      className="w-64 p-6 h-full flex flex-col lg:border-r"
+      style={{
+        backgroundColor: "var(--sidebar-bg)",
+        borderColor: "var(--border-color)",
+      }}
+    >
       <div className="flex flex-col items-center mb-8">
-        <div className="w-20 h-20 rounded-full bg-gray-100 overflow-hidden mb-4 border-2 border-blue-200">
+        <div
+          className="w-20 h-20 rounded-full overflow-hidden mb-4 border-2"
+          style={{
+            backgroundColor: "var(--bg-tertiary)",
+            borderColor: "var(--accent-primary-light)",
+          }}
+        >
           <img
             src={currentUser?.profilePicUrl || "/defaultProfile.png"}
             alt="Profile Image"
@@ -75,27 +87,57 @@ const SideMenu = ({ activeMenu }) => {
         </div>
 
         {currentUser?.role === "admin" && (
-          <div className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mb-2">
+          <div
+            className="text-xs font-semibold px-2.5 py-0.5 rounded-full mb-2"
+            style={{
+              backgroundColor: "var(--accent-primary-light)",
+              color: "var(--accent-primary)",
+            }}
+          >
             Admin
           </div>
         )}
 
-        <h5 className="text-lg font-semibold text-gray-800">
+        <h5
+          className="text-lg font-semibold"
+          style={{ color: "var(--text-primary)" }}
+        >
           {currentUser?.name || ""}
         </h5>
 
-        <p className="text-sm text-gray-500">{currentUser?.email || ""}</p>
+        <p
+          className="text-sm"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          {currentUser?.email || ""}
+        </p>
       </div>
 
       <div className="flex-1 overscroll-y-auto">
         {SideMenuData.map((item, index) => (
           <button
             key={`menu_${index}`}
-            className={`w-full flex items-center gap-4 text-[15px] ${
-              activeMenu === item.label
-                ? "text-blue-500 bg-linear-to-r from-blue-50/40 to-blue-100/50"
-                : ""
-            } py-3 px-6 mb-3 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors`}
+            className={`w-full flex items-center gap-4 text-[15px] py-3 px-6 mb-3 cursor-pointer rounded-lg transition-colors`}
+            style={{
+              backgroundColor:
+                activeMenu === item.label
+                  ? "var(--sidebar-active-bg)"
+                  : "transparent",
+              color:
+                activeMenu === item.label
+                  ? "var(--sidebar-active-text)"
+                  : "var(--text-primary)",
+            }}
+            onMouseEnter={(e) => {
+              if (activeMenu !== item.label) {
+                e.currentTarget.style.backgroundColor = "var(--sidebar-hover)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeMenu !== item.label) {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }
+            }}
             onClick={() => handleClick(item.path)}
           >
             <item.icon className="text-2xl" />
@@ -105,12 +147,24 @@ const SideMenu = ({ activeMenu }) => {
       </div>
 
       {showLogoutModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-sm shadow-2xl transform transition-all">
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ backgroundColor: "var(--modal-overlay)" }}
+        >
+          <div
+            className="rounded-lg p-8 max-w-sm shadow-2xl transform transition-all"
+            style={{
+              backgroundColor: "var(--modal-bg)",
+              color: "var(--text-primary)",
+            }}
+          >
             <div className="text-center">
               <span className="text-5xl mb-4 block">👋</span>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Sign Out?</h3>
-              <p className="text-gray-600 mb-6">
+              <h3 className="text-xl font-bold mb-2">Sign Out?</h3>
+              <p
+                className="mb-6"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 Are you sure you want to sign out from your account? You'll need to log back in to continue.
               </p>
             </div>
@@ -118,13 +172,21 @@ const SideMenu = ({ activeMenu }) => {
             <div className="flex gap-3">
               <button
                 onClick={cancelLogout}
-                className="flex-1 px-4 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-all transform hover:scale-105 font-semibold"
+                className="flex-1 px-4 py-3 rounded-lg hover:scale-105 transition-all transform font-semibold"
+                style={{
+                  backgroundColor: "var(--bg-tertiary)",
+                  color: "var(--text-primary)",
+                }}
               >
                  Cancel
               </button>
               <button
                 onClick={confirmLogout}
-                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 font-semibold"
+                className="flex-1 px-4 py-3 rounded-lg hover:scale-105 transition-all transform font-semibold"
+                style={{
+                  backgroundColor: "var(--accent-danger)",
+                  color: "var(--text-inverse)",
+                }}
               >
                Sign Out
               </button>

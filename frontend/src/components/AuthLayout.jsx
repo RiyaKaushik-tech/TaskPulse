@@ -1,15 +1,30 @@
 import React from 'react'
+import ThemeToggle from './ThemeToggle'
 
 const AuthLayout = ({children}) => {
   return (
-    <div className='flex h-screen overflow-hidden'>
-      <div className='w-full md:w-1/2 overflow-y-auto'>
-        <div className='min-h-screen flex px-12 pt-8 pb-12 flex-col'>
-            <div className='flex flex-grow justify-center items-center'>
-                {children}
-            </div>
+    <div 
+      className='flex h-screen overflow-hidden'
+      style={{ backgroundColor: "var(--bg-primary)" }}
+    >
+        {/* Theme toggle accessible on auth pages without changing logic */}
+        <div className='fixed top-4 right-4 z-50'>
+          <ThemeToggle />
         </div>
-      </div>
+
+        <div 
+          className='w-full md:w-1/2 overflow-y-auto'
+          style={{ backgroundColor: "var(--bg-primary)" }}
+        >
+          <div 
+            className='min-h-screen flex px-12 pt-8 pb-12 flex-col'
+            style={{ backgroundColor: "var(--bg-primary)" }}
+          >
+            <div className='flex flex-grow justify-center items-center'>
+              {children}
+            </div>
+          </div>
+        </div>
 
       <div className='hidden md:block w-1/2'>
         <img 

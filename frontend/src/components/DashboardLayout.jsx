@@ -7,7 +7,10 @@ const DashboardLayout = ({ children, activeMenu }) => {
   const { currentUser } = useSelector((state) => state.user)
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div 
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: "var(--bg-primary)" }}
+    >
       <Navbar activeMenu={activeMenu} />
 
       {currentUser && (
