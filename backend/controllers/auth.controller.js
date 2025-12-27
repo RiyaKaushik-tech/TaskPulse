@@ -131,9 +131,11 @@ export const SignIn = async (req, res, next) => {
       process.env.JWT_SECRET
     )
 
-    const { password: pass, ...rest } = validUser._doc
+    // Refresh user data to include updated lastLoginDate
+    const freshUser = await User.findById(validUser._id);
+    const { password: pass, ...rest } = freshUser._doc;
 
-    res.status(200).cookie("access_token", token, { httpOnly: true }).json(rest)
+    res.status(200).cookie("access_token", token, { httpOnly: true }).json({ ...rest, token })
   } catch (error) {
     next(error)
   }
@@ -204,5 +206,48 @@ export const signout = async (req, res, next) => {
       .json("User has been logged-out successfully!")
   } catch (error) {
     next(error)
+  }
+}
+
+// Get user attendance records
+export const getUserAttendance = async (req, res, next) => {
+  try {
+    const userId = req.user?.id || req.params.userId;
+    if (!userId) return next(ErrorHandler(400, "User ID required"));
+
+    const user = await User.findById(userId).select("attendanceRecords absentDays lastLoginDate");
+    if (!user) return next(ErrorHandler(404, "User not found"));
+
+    res.status(200).json({
+      success: true,
+      attendanceRecords: user.attendanceRecords || [],
+      absentDays: user.absentDays || 0,
+      lastLoginDate: user.lastLoginDate
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Get all users attendance (admin only)
+export const getAllUsersAttendance = async (req, res, next) => {
+  try {
+    const users = await User.find({ role: "user" }).select(
+      "name email attendanceRecords absentDays lastLoginDate"
+    );
+
+    const attendanceData = users.map(u => ({
+      userId: u._id,
+      name: u.name,
+      email: u.email,
+      absentDays: u.absentDays || 0,
+      lastLoginDate: u.lastLoginDate,
+      totalRecords: u.attendanceRecords?.length || 0,
+      attendanceRecords: u.attendanceRecords || []
+    }));
+
+    res.status(200).json({ success: true, data: attendanceData });
+  } catch (error) {
+    next(error);
   }
 }

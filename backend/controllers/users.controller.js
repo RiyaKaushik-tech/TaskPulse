@@ -25,7 +25,10 @@ export const getUser = async(req, res, next) =>{
                     ...user._doc,
                     pendingTasks,
                     inProgressTasks,
-                    completedTasks
+                    completedTasks,
+                    attendanceRecords: user.attendanceRecords || [],
+                    absentDays: user.absentDays || 0,
+                    lastLoginDate: user.lastLoginDate
                 })
             })
         )
@@ -39,16 +42,21 @@ export const getUser = async(req, res, next) =>{
 
 export const getUserById = async (req, res, next) => {
     try {
-        // accept many common param names and fallback to authenticated user
         const id = req.params._id || req.params.id || req.params.userId || req.user?.id;
-        // console.log("getUserById -> looking for id:", id);
 
         if (!id) return next(ErrorHandler(400, "Missing user id"));
 
         const user = await User.findById(id).select("-password");
         if (!user) return next(ErrorHandler(404, "User not found"));
 
-        return res.status(200).json({ success: true, user });
+        const userWithAttendance = {
+          ...user._doc,
+          attendanceRecords: user.attendanceRecords || [],
+          absentDays: user.absentDays || 0,
+          lastLoginDate: user.lastLoginDate
+        };
+
+        return res.status(200).json({ success: true, user: userWithAttendance });
     } catch (error) {
         console.error("getUserById error:", error);
         return next(error);
