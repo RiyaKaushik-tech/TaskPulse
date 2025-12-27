@@ -35,7 +35,7 @@ const HomePage= () => {
 
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-green-50 via-green-100 to-slate-200 dark:from-slate-900 dark:via-green-900 dark:to-slate-900 p-6 relative">
+    <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-green-50 via-green-100 to-slate-200 dark:from-slate-900 dark:via-green-900 dark:to-slate-900 p-6 relative">
       {/* floating decorative shapes */}
       <motion.div
         className="absolute left-12 top-20 w-24 h-24 rounded-full bg-green-400/30 dark:bg-green-700/30 blur-sm"
@@ -65,9 +65,9 @@ const HomePage= () => {
             initial={{ y: 12, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl lg:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-green-400 dark:from-green-400 dark:to-green-300"
+            className="text-4xl lg:text-6xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-green-600 to-green-400 dark:from-green-400 dark:to-green-300"
           >
-            Project Flow
+            TASK PULSE
           </motion.h1>
 
           <motion.p
@@ -92,7 +92,7 @@ const HomePage= () => {
               onClick={handleCTA}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              className="px-8 py-3 rounded-full bg-gradient-to-r from-green-600 to-green-400 text-white font-semibold shadow-lg"
+              className="px-8 py-3 rounded-full bg-linear-to-r from-green-600 to-green-400 text-white font-semibold shadow-lg"
             >
               {isLoggedIn ? "Go to Dashboard" : "Get Started"}
             </motion.button>
@@ -133,7 +133,7 @@ const HomePage= () => {
               className="relative rounded-xl bg-white/20 dark:bg-white/6 backdrop-blur-md border border-white/10 dark:border-white/6 shadow-2xl overflow-hidden"
             >
               {/* top gradient accent */}
-              <div className="h-2 w-full bg-gradient-to-r from-green-600 to-green-400" />
+              <div className="h-2 w-full bg-linear-to-r from-green-600 to-green-400" />
 
               {/* inner content */}
               <div className="p-6">
@@ -147,25 +147,10 @@ const HomePage= () => {
 
                 {/* video placeholder */}
                 <div className="w-full h-56 bg-slate-100/60 dark:bg-slate-800/60 rounded-md flex items-center justify-center border border-white/10">
-                  <div className="text-center">
-                    <svg className="mx-auto mb-2 w-12 h-12 text-green-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                    <div className="text-sm text-slate-700 dark:text-slate-200">Demo video will be placed here</div>
-                    <div className="text-xs text-slate-400 mt-2">You can drop a live demo or walkthrough later</div>
-                  </div>
+<video src="demo.mp4" autoPlay muted loop playsInline controls={false} />
                 </div>
 
-                {/* small controls */}
-                <div className="mt-4 flex items-center justify-between text-sm text-slate-500">
-                  <div className="flex items-center gap-3">
-                    <button className="px-3 py-1 rounded bg-white/10 dark:bg-white/5">Preview</button>
-                    <button className="px-3 py-1 rounded border border-white/10">Share</button>
-                  </div>
-                  <div>
-                    <button onClick={() => navigate("/create-task")} className="px-3 py-1 rounded bg-green-600 text-white">Create Task</button>
-                  </div>
-                </div>
+            
               </div>
 
               {/* bottom footer */}
