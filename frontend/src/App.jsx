@@ -7,7 +7,7 @@ import CreateTask from "./pages/admin/createTasks.jsx"
 import ManageTasks from "./pages/admin/manageTasks.jsx"
 import ManageUsers from "./pages/admin/manageUsers.jsx"
 import MyTasks from "./pages/users/myTasks.jsx"
-import TaskDetails from "./pages/users/TaskDetails.jsx"
+import TaskDetails from "./pages/users/taskDetails.jsx"
 import UserDashboard from "./pages/users/userDashboard.jsx"
 import UserDetails from "./pages/users/UserDetails.jsx"
 import Dashboard from "./pages/admin/dashboard.jsx"
@@ -15,8 +15,8 @@ import HomePage from "./pages/home.jsx"
 import NotFound from "./pages/NotFound.jsx"
 import ErrorBoundary from "./components/ErrorBoundary.jsx"
 import TaskCard from "./components/TaskCard.jsx"
-import Notifications from "./pages/users/Notifications";
-import ActivityLogs from "./pages/admin/ActivityLogs";
+import Notifications from "./pages/users/Notifications.jsx";
+import ActivityLogs from "./pages/admin/ActivityLogs.jsx";
 import { useSelector } from "react-redux"
 import { initSocket } from "./utils/socket.js"
 import { Toaster } from "react-hot-toast"
