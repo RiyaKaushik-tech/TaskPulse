@@ -19,13 +19,8 @@ export default defineConfig({
         }
       }
     },
-    // Minify and optimize
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console logs in production
-      }
-    },
+    // Use swc for faster minification (Vite default)
+    minify: 'esbuild',
     // Increase chunk size warning
     chunkSizeWarningLimit: 1000,
   },

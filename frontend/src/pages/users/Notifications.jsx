@@ -5,7 +5,7 @@ import DeleteAlert from "../../components/DeleteAlert";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import { getSocket } from "../../utils/socket";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { FaBeer, FaBell, FaPlus, FaTimes } from "react-icons/fa";
 import { MdChatBubble } from "react-icons/md";
 
