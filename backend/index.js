@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import path from 'path';
 import http from 'http';
 import { Server as IOServer } from 'socket.io';
@@ -33,15 +34,18 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || process.env.FRONTEND_URL ;
 const app = express();
 
 // --- core middleware (ensure these run before routes) ---
+app.use(compression()); // Enable gzip compression
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// simple request logger (helpful during dev)
-app.use((req, res, next) => {
-  console.log(new Date().toISOString(), req.method, req.originalUrl);
-  next();
-});
+// simple request logger (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(new Date().toISOString(), req.method, req.originalUrl);
+    next();
+  });
+}
 
 // CORS - allow credentials if frontend needs cookies/auth
 app.use(
