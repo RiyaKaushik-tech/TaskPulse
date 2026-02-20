@@ -32,6 +32,8 @@ const SideMenu = ({ activeMenu }) => {
       const response = await axiosInstance.post("/auth/sign-out")
 
       if (response.data) {
+        // Clear token from localStorage
+        localStorage.removeItem("token")
         dispatch(signOutSuccess())
         toast.success("Logged out successfully!", { id: logoutToast })
         // console.log("logout : ",response.data)
@@ -39,6 +41,8 @@ const SideMenu = ({ activeMenu }) => {
       }
     } catch (error) {
       console.log(error)
+      // Clear token even if logout fails
+      localStorage.removeItem("token")
       toast.error(" Error logging out. Please try again!", { id: logoutToast })
     }
   }

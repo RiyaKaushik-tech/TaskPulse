@@ -55,6 +55,11 @@ const Login = () => {
       )
 
       // console.log(response.data)
+      
+      // Save token to localStorage for API requests
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token)
+      }
 
       if (response.data.role === "admin") {
         dispatch(signInSuccess(response.data))
