@@ -182,13 +182,13 @@ const ManageTasks = () => {
               My Tasks
             </h2>
 
-            <button
+            {/* <button
               className="md:hidden px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium shadow-sm hover:shadow-md cursor-pointer"
               onClick={handleDownloadReport}
               type="button"
             >
               📥 Download
-            </button>
+            </button> */}
           </div>
 
           {allTasks?.length > 0 && (
