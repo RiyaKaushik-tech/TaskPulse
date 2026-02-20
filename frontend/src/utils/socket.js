@@ -7,7 +7,7 @@ export const initSocket = ({ token } = {}) => {
     if (!token) return null;
     if (socket?.connected) return socket;
     
-    const base = import.meta.env.VITE_API_BASE_WS || "http://localhost:5000";
+    const base = import.meta.env.VITE_API_BASE || "http://localhost:5000";
     socket = io(base, {
       auth: { token },
       withCredentials: true,

@@ -27,8 +27,8 @@ const __dirname = path.dirname(__filename__);
 const rawPort = process.env.PORT;
 const parsedPort = Number(rawPort);
 const PORT = Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 5000;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-const CORS_ORIGIN = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const CORS_ORIGIN = process.env.CORS_ORIGIN || process.env.FRONTEND_URL ;
 
 const app = express();
 
