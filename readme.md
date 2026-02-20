@@ -40,7 +40,7 @@ Edit `backend/.env`:
 MONGO_URI=mongodb://localhost:27017/sync_solution
 PORT=5000
 JWT_SECRET=your-secret
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=https://task-pulse-jo23.onrender.com
 
 # AI keys
 GROQ_API_KEY=gsk_your_key
@@ -62,7 +62,7 @@ npm start
 cd ../frontend
 npm run dev
 ```
-Open: http://localhost:5173
+Open: https://task-pulse-jo23.onrender.com
 
 ## 🛠 Tech Stack
 - Frontend: React 18, Vite, TailwindCSS, Redux Toolkit, Axios, Socket.io
@@ -121,7 +121,7 @@ GET                  /api/auth/attendance
 - JWT auth & RBAC, bcrypt hashing, CORS, secured env-based keys, input validation/sanitization.
 
 ## 🐛 Troubleshooting
-- AI keys: verify in `backend/.env`; test with `curl http://localhost:5000/api/ai/status`.
+- AI keys: verify in `backend/.env`; test with `curl https://taskpulse-backend-jaye.onrender.com/api/ai/status`.
 - CORS/URLs: ensure `FRONTEND_URL` matches your deployed frontend.
 - Mongo: confirm `MONGO_URI` correctness; check backend logs on start.
 

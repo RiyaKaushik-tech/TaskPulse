@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_BASE || "https://taskpulse-backend-jaye.onrender.com/api",
   withCredentials: true, // important if backend uses cookie auth
   headers: { "Content-Type": "application/json" },
   timeout: 15000, // 15 second timeout to prevent hanging

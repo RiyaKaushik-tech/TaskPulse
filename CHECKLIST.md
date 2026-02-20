@@ -97,7 +97,7 @@ All AI features have been successfully integrated. Use this checklist to get eve
 MONGO_URI=mongodb://localhost:27017/taskpulse
 PORT=5000
 JWT_SECRET=your-secret-key
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=https://task-pulse-jo23.onrender.com
 
 GROQ_API_KEY=gsk_your_actual_key_here
 GEMINI_API_KEY=AIzaSy_your_actual_key_here
@@ -132,7 +132,7 @@ Expected output:
 ### **Step 4: Test Features (5 minutes)**
 
 #### ⬜ **Test 1: Task Suggestions**
-- [ ] Open browser: http://localhost:5173
+- [ ] Open browser: https://task-pulse-jo23.onrender.com
 - [ ] Login to your account
 - [ ] Go to "Create Task" page
 - [ ] Find purple "AI Task Assistant" box at top
@@ -192,7 +192,7 @@ Expected output:
 ### **Step 5: Verify API Status (30 seconds)**
 
 - [ ] Open terminal or use Postman
-- [ ] Send GET request to: `http://localhost:5000/api/ai/status`
+- [ ] Send GET request to: `https://taskpulse-backend-jaye.onrender.com/api/ai/status`
 - [ ] Check response shows all services as `true`:
 
 ```json

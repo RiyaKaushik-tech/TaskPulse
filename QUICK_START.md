@@ -79,7 +79,7 @@ npm start
 ## ✅ **Step 4: Test Features (30 seconds)**
 
 ### **1. Task Suggestions**
-1. Open browser: `http://localhost:5173`
+1. Open browser: `https://task-pulse-jo23.onrender.com`
 2. Go to "Create Task" page
 3. Find purple "AI Task Assistant" box
 4. Type: "implement user authentication"
@@ -182,7 +182,7 @@ node --version
 
 ```bash
 # 1. Check AI status endpoint
-curl http://localhost:5000/api/ai/status
+curl https://taskpulse-backend-jaye.onrender.com/api/ai/status
 
 # Should return:
 {
