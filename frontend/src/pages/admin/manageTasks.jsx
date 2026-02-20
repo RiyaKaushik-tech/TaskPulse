@@ -199,14 +199,14 @@ const ManageTasks = () => {
                 setActiveTab={setFilterStatus}
               />
 
-              <button
+              {/* <button
                 className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md active:scale-95 cursor-pointer"
                 onClick={handleDownloadReport}
                 type="button"
               >
                 <FaFileLines className="text-lg" />
                 <span>📥 Download Report</span>
-              </button>
+              </button> */}
             </div>
           )}
         </div>
