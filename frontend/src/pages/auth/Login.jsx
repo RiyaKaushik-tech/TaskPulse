@@ -66,15 +66,23 @@ const Login = () => {
         navigate("/users/userDashboard")
       }
     } catch (error) {
-      if (error.response && error.response.data.message) {
+      // Handle timeout errors
+      if (error.code === 'ECONNABORTED') {
+        setError("Request timeout. Please check your connection and try again.")
+        dispatch(signInFailure("Request timeout. Please check your connection and try again."))
+        toast.error("Request timeout. Please check your connection and try again.")
+      } else if (error.response && error.response.data.message) {
         setError(error.response.data.message)
         dispatch(signInFailure(error.response.data.message))
         toast.error(error.response.data.message)
-        toast
+      } else if (error.message) {
+        setError(error.message)
+        dispatch(signInFailure(error.message))
+        toast.error(error.message)
       } else {
         setError("Something went wrong. Please try again!")
-        toast.error("Something went wrong. Please try again!")
         dispatch(signInFailure("Something went wrong. Please try again!"))
+        toast.error("Something went wrong. Please try again!")
       }
     }
    }
@@ -158,9 +166,14 @@ const Login = () => {
 
             <button
                     type="submit"
-                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                    disabled={loading}
+                    className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                      loading
+                        ? "bg-blue-400 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                    } focus:outline-none focus:ring-0 focus:ring-offset-0`}
                   >
-                    LOGIN
+                    {loading ? "Loading..." : "LOGIN"}
                   </button>
                   
             </form>
