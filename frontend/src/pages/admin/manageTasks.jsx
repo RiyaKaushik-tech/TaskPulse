@@ -79,7 +79,7 @@ const ManageTasks = () => {
   const handleDownloadReport = async () => {
     const downloadToast = toast.loading("📥 Downloading report...")
     try {
-      const response = await axiosInstance.get("/export/task", {
+      const response = await axiosInstance.get("/report/export/task", {
         responseType: "blob",
       })
 
