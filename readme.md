@@ -3,7 +3,7 @@
 A production-grade, full‑stack task management system with real‑time notifications, role‑based access, attendance tracking, file uploads, and a suite of AI capabilities (task suggestions, subtasks, semantic search, reports, insights, comment summarization, and daily digests) powered by Groq, Google Gemini, Hugging Face, and Cohere.
 
 > Repo: https://github.com/RiyaKaushik-tech/Task-Us  
-> Live Demo (Frontend): https://Task-Us-jo23.onrender.com  
+> Live Demo (Frontend):(https://task-us-ai.vercel.app/)  
 > API Base (Backend default): https://Task-Us-backend-jaye.onrender.com
 
 ---
